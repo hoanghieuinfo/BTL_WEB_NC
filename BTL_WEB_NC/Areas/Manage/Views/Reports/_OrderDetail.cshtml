@@ -1,0 +1,81 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Chi tiết hóa đơn theo BM06 (ảnh "MH13 – Hộp thoại Chi tiết Hóa đơn"): đầu hóa đơn, chi tiết, tổng kết. Món hủy gạch ngang kèm lý do. *@
+@model OrderDetail
+@using BTL_WEB_NC.Models.Entities
+@{
+    var status = Model.Status switch
+    {
+        OrderStatus.Paid => ("Đã thanh toán", "badge-success"),
+        OrderStatus.Cancelled => ("Đã hủy", "badge-danger"),
+        _ => ("Đang phục vụ", "badge-warn")
+    };
+    var discountPercent = Model.SubTotal > 0 && Model.Discount > 0
+        ? Math.Round(Model.Discount * 100 / Model.SubTotal, 0, MidpointRounding.AwayFromZero) : 0;
+}
+<div data-order-meta data-code="@Model.Code" data-status="@status.Item1" data-status-class="@status.Item2"></div>
+
+<div class="receipt-head">
+    <p class="receipt-shop">@Model.TenantName – Chi nhánh @Model.BranchName</p>
+    <p class="muted">Địa chỉ: @Model.BranchAddress@(Model.BranchPhone is null ? "" : " • ĐT: " + Model.BranchPhone)</p>
+    <dl class="receipt-facts">
+        <div><dt>Mã hóa đơn:</dt><dd>@Model.Code</dd></div>
+        <div><dt>Thời gian:</dt><dd>@((Model.PaidAt ?? Model.CreatedAt).ToString("dd/MM/yyyy HH:mm"))</dd></div>
+        <div><dt>Vị trí phục vụ:</dt><dd>@Model.TableName (@Model.ZoneName)</dd></div>
+        <div><dt>Thu ngân phụ trách:</dt><dd>@(Model.CashierName ?? "–")</dd></div>
+    </dl>
+</div>
+
+<div class="table-scroll receipt-lines-box">
+    <table class="receipt-items">
+        <thead>
+            <tr>
+                <th scope="col" class="center">STT</th>
+                <th scope="col">Tên món</th>
+                <th scope="col" class="center">SL</th>
+                <th scope="col" class="num">Đơn giá</th>
+                <th scope="col" class="num">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Model.Lines.Count; i++)
+            {
+                var line = Model.Lines[i];
+                <tr class="@(line.IsCancelled ? "is-cancelled" : "")">
+                    <td class="center">@(i + 1)</td>
+                    <td>
+                        <span class="item-name">@line.Name</span>
+                        @if (line.Note is not null)
+                        {
+                            <span class="item-note">@line.Note</span>
+                        }
+                        @if (line.IsCancelled)
+                        {
+                            <span class="cancel-tag">Đã hủy@(line.CancelReason is null ? "" : ": " + line.CancelReason)</span>
+                        }
+                    </td>
+                    <td class="center qty">@line.Quantity</td>
+                    <td class="num price">@InventoryText.Money(line.UnitPrice)</td>
+                    <td class="num strong">@InventoryText.Money(line.Amount)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<dl class="receipt-total">
+    <div><dt>Tổng tiền hàng:</dt><dd>@InventoryText.Money(Model.SubTotal)</dd></div>
+    <div>
+        <dt>Giảm giá: @if (Model.Discount > 0) { <span class="discount-tag">@(Model.DiscountReason ?? "Giảm giá") (-@discountPercent%)</span> }</dt>
+        <dd class="@(Model.Discount > 0 ? "minus" : "")">@(Model.Discount > 0 ? "-" : "")@InventoryText.Money(Model.Discount)</dd>
+    </div>
+    <div class="grand"><dt>Tổng thanh toán:</dt><dd>@InventoryText.Money(Model.Total)</dd></div>
+    <div><dt>Hình thức thanh toán:</dt><dd>@(Model.PaymentMethod switch { PaymentMethod.Cash => "Tiền mặt", PaymentMethod.BankTransfer => "Chuyển khoản", _ => "–" })</dd></div>
+    @if (Model.CashReceived.HasValue)
+    {
+        <div><dt>Tiền khách đưa:</dt><dd>@InventoryText.Money(Model.CashReceived.Value)</dd></div>
+    }
+    @if (Model.ChangeDue.HasValue)
+    {
+        <div><dt>Tiền thừa trả khách:</dt><dd class="change">@InventoryText.Money(Model.ChangeDue.Value)</dd></div>
+    }
+</dl>

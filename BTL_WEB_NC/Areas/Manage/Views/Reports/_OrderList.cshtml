@@ -1,0 +1,52 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Hóa đơn Đã thanh toán trong kỳ (Partial View), mới nhất trước. < 768px là thẻ theo ảnh Mobile. *@
+@model ReportOrderList
+<div data-list-meta data-page="@Model.Page">
+@if (Model.TotalCount == 0)
+{
+    <div class="state"><p>Không có hóa đơn trong kỳ.</p></div>
+}
+else
+{
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th scope="col">Số hóa đơn</th>
+                <th scope="col">Chi nhánh</th>
+                <th scope="col" class="num">Giảm giá</th>
+                <th scope="col" class="num">Tổng tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model.Items)
+            {
+                <tr class="order-row" data-order-id="@o.Id" data-code="@o.Code">
+                    <th scope="row" class="col-code">
+                        <button type="button" class="link-btn" data-action="view-order">@o.Code</button>
+                        <span class="order-meta">
+                            @o.PaidAt.ToString("dd/MM HH:mm")<span class="mobile-only"> • @o.BranchName • @o.TableName</span>
+                        </span>
+                        @if (o.CashierName is not null)
+                        {
+                            <span class="order-meta mobile-only">Thu ngân: @o.CashierName</span>
+                        }
+                    </th>
+                    <td class="col-branch"><span class="branch-pill">@o.BranchName</span></td>
+                    <td class="num col-discount @(o.Discount > 0 ? "has-discount" : "")">
+                        <span class="mobile-only">Giảm giá: </span>@InventoryText.Money(o.Discount)
+                    </td>
+                    <td class="num col-total">@InventoryText.Money(o.Total)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav class="pagination" aria-label="Phân trang hóa đơn">
+        <p class="pagination-info">Hiển thị <strong>@Model.From–@Model.To</strong> trên <strong>@Model.TotalCount.ToString("#,##0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</strong> hóa đơn</p>
+        @if (Model.TotalPages > 1)
+        {
+            <partial name="_Pager" model='new PagerModel(Model.Page, Model.TotalPages, "Trang hóa đơn")' />
+        }
+    </nav>
+}
+</div>

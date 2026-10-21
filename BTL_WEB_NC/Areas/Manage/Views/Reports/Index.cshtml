@@ -1,0 +1,177 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH13 – Báo cáo doanh thu (P08, R20, BM09). Số liệu và biểu đồ tải bằng AJAX (A09, JSON cho Chart.js);
+   JS điền chữ bằng textContent. Hóa đơn trong kỳ và chi tiết hóa đơn là Partial View. *@
+@model ReportPageModel
+@{
+    ViewData["Title"] = "Báo cáo";
+    var today = Model.Today.ToString("yyyy-MM-dd");
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/reports.css" asp-append-version="true" />
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Báo cáo doanh thu</h1>
+        <p class="page-subtitle" data-period-text>&nbsp;</p>
+    </div>
+</div>
+
+<form class="card report-filter" data-filter-form novalidate data-today="@today">
+    <div class="filter-fields">
+        <div class="field">
+            <label class="field-label" for="report-from">Từ ngày</label>
+            <input class="input" id="report-from" type="date" name="from" max="@today" required />
+            <span class="field-error" data-error-for="from"></span>
+        </div>
+        <div class="field">
+            <label class="field-label" for="report-to">Đến ngày</label>
+            <input class="input" id="report-to" type="date" name="to" max="@today" required />
+            <span class="field-error" data-error-for="to"></span>
+        </div>
+        <div class="field">
+            <label class="field-label" for="report-branch">Chi nhánh</label>
+            <select class="select" id="report-branch" name="branchId">
+                <option value="">Tất cả chi nhánh</option>
+                @foreach (var b in Model.Branches)
+                {
+                    <option value="@b.Id">@b.Name@(b.IsActive ? "" : " (tạm ngưng)")</option>
+                }
+            </select>
+            <span class="field-error" data-error-for="branchId"></span>
+        </div>
+        <button type="submit" class="btn btn-primary filter-submit" data-submit>Xem báo cáo</button>
+    </div>
+    <div class="quick-ranges">
+        <span class="quick-label">Chọn nhanh:</span>
+        <div class="quick-list" role="group" aria-label="Chọn nhanh khoảng thời gian">
+            <button type="button" class="chip" data-range="today">Hôm nay</button>
+            <button type="button" class="chip" data-range="7">7 ngày</button>
+            <button type="button" class="chip" data-range="14">14 ngày</button>
+            <button type="button" class="chip" data-range="month">Tháng này</button>
+        </div>
+        <span class="compare-note" data-compare-note></span>
+    </div>
+    <p class="field-error" data-error-for=""></p>
+</form>
+
+<div class="report-body is-loading" data-report aria-busy="true" aria-live="polite">
+    <section class="report-stats" aria-label="Chỉ số tổng quan">
+        <div class="card stat">
+            <span class="stat-label">Tổng doanh thu</span>
+            <strong class="stat-value" data-stat="revenue">&nbsp;</strong>
+            <span class="trend" data-trend="revenue"></span>
+        </div>
+        <div class="card stat">
+            <span class="stat-label">Số hóa đơn</span>
+            <strong class="stat-value" data-stat="orders">&nbsp;</strong>
+            <span class="trend" data-trend="orders"></span>
+        </div>
+        <div class="card stat">
+            <span class="stat-label">Trung bình mỗi hóa đơn</span>
+            <strong class="stat-value" data-stat="average">&nbsp;</strong>
+            <span class="trend" data-trend="average"></span>
+        </div>
+        <div class="card stat">
+            <span class="stat-label">Giảm giá đã áp dụng</span>
+            <strong class="stat-value" data-stat="discount">&nbsp;</strong>
+            <span class="stat-note" data-stat="discounted"></span>
+        </div>
+    </section>
+
+    <div class="report-charts">
+        <section class="card chart-card" aria-labelledby="day-chart-title">
+            <div class="card-head">
+                <div>
+                    <h2 class="section-title" id="day-chart-title">Doanh thu theo ngày</h2>
+                    <p class="card-sub" data-day-sub></p>
+                </div>
+                <div class="legend" aria-hidden="true">
+                    <span class="legend-item"><span class="legend-dot"></span>Kỳ này</span>
+                    <span class="legend-item"><span class="legend-dash"></span>Kỳ trước</span>
+                </div>
+            </div>
+            <div class="chart-box">
+                <canvas id="day-chart" role="img" aria-label="Biểu đồ đường doanh thu theo ngày, kỳ này và kỳ trước"></canvas>
+            </div>
+        </section>
+
+        <section class="card branch-card" aria-labelledby="branch-title">
+            <div class="card-head">
+                <h2 class="section-title" id="branch-title">Theo chi nhánh</h2>
+                <span class="badge" data-branch-count></span>
+            </div>
+            <ul class="branch-bars" data-branch-bars></ul>
+            <div class="chart-box chart-box-sm">
+                <canvas id="branch-chart" role="img" aria-label="Biểu đồ cột doanh thu theo chi nhánh"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <div class="report-lists">
+        <section class="card list-card" aria-labelledby="orders-title">
+            <div class="card-head">
+                <h2 class="section-title" id="orders-title">Hóa đơn trong kỳ <span class="badge">Mới nhất</span></h2>
+            </div>
+            <div data-order-list aria-live="polite"></div>
+        </section>
+
+        <section class="card list-card" aria-labelledby="top-title">
+            <div class="card-head">
+                <h2 class="section-title" id="top-title">Top 10 món bán chạy</h2>
+                <span class="badge" data-top-scope>Tất cả chi nhánh</span>
+            </div>
+            <table class="top-table">
+                <thead>
+                    <tr>
+                        <th scope="col" class="center">Hạng</th>
+                        <th scope="col">Món</th>
+                        <th scope="col" class="num">Số lượng</th>
+                        <th scope="col" class="num">Doanh thu</th>
+                    </tr>
+                </thead>
+                <tbody data-top-body></tbody>
+            </table>
+            <p class="card-foot">Doanh thu món = đơn giá × số lượng, chưa trừ giảm giá theo hóa đơn.</p>
+        </section>
+    </div>
+</div>
+
+<section class="card report-empty" data-empty hidden>
+    <div class="state">
+        <span class="empty-icon" aria-hidden="true">▤</span>
+        <p class="state-title">Không có hóa đơn nào trong kỳ đã chọn</p>
+        <p data-empty-text></p>
+        <div class="empty-actions">
+            <button type="button" class="btn" data-action="reset-default">↺ Đặt lại về 14 ngày gần nhất</button>
+            <button type="button" class="btn btn-primary" data-action="pick-range">Chọn kỳ khác</button>
+        </div>
+    </div>
+</section>
+
+<section class="card" data-error hidden>
+    <div class="state state-error">
+        <p class="state-title">Không tải được báo cáo</p>
+        <button type="button" class="btn" data-action="retry">Thử lại</button>
+    </div>
+</section>
+
+<template id="orders-loading-template">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải hóa đơn...</span></div>
+</template>
+
+<dialog class="modal modal-lg" id="order-modal" aria-labelledby="order-title">
+    <div class="modal-head">
+        <h2 class="modal-title" id="order-title">Hóa đơn</h2>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body order-body" data-order-body aria-live="polite"></div>
+    <div class="modal-foot">
+        <button type="button" class="btn" data-close>Đóng</button>
+    </div>
+</dialog>
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/manage/reports.js" asp-append-version="true"></script>
+}

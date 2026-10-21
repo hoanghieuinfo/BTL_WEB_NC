@@ -1,16 +1,224 @@
 @* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH08 – Tổng quan quán: số liệu hôm nay so với hôm qua (R20), nguyên liệu cần nhập (R19), gói dịch vụ và mức dùng (R11, R17).
+   Render ở server; đổi chi nhánh là gửi form GET (?branchId=). *@
+@model DashboardModel
+@using System.Globalization
 @{
     ViewData["Title"] = "Tổng quan";
-    var fullName = User.FindFirst(TenantClaimTypes.FullName)?.Value ?? "";
+    var vi = CultureInfo.GetCultureInfo("vi-VN");
+    var dayName = Model.Today.ToString("dddd", vi);
+    dayName = char.ToUpper(dayName[0], vi) + dayName[1..];
+    var t = Model.TodaySummary;
+    var y = Model.YesterdaySummary;
+    var u = Model.Usage;
+    var daysLeft = Model.PlanDaysLeft;
+
+    // Nhãn so với hôm qua: (chữ, lớp màu).
+    (string Text, string Css) PercentTrend(decimal today, decimal yesterday, string suffix, string emptyText)
+    {
+        if (today == 0) return (emptyText, "trend-flat");
+        if (yesterday == 0) return ("Mới phát sinh hôm nay", "trend-up");
+        var change = Math.Round((today - yesterday) * 100 / yesterday, 0, MidpointRounding.AwayFromZero);
+        return change >= 0 ? ($"Tăng {change}%{suffix}", "trend-up") : ($"Giảm {-change}%{suffix}", "trend-down");
+    }
+    var revenueTrend = PercentTrend(t.Revenue, y.Revenue, " so với hôm qua", "Chưa phát sinh doanh thu");
+    var orderDiff = t.Orders - y.Orders;
+    var ordersTrend = t.Orders == 0 ? ("Chưa có hóa đơn", "trend-flat")
+        : orderDiff >= 0 ? ($"Tăng {orderDiff} hóa đơn", "trend-up") : ($"Giảm {-orderDiff} hóa đơn", "trend-down");
+    var averageTrend = PercentTrend(t.Average, y.Average, "", "Chưa có dữ liệu");
+
+    var (planText, planCss) = daysLeft switch
+    {
+        null => ("Hoạt động", "badge-success"),
+        < 0 => ("Hết hạn", "badge-danger"),
+        <= 7 => ("Sắp hết hạn", "badge-warn"),
+        _ => ("Hoạt động", "badge-success")
+    };
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/dashboard.css" asp-append-version="true" />
 }
 
-<div class="page-head">
+<div class="page-head dashboard-head">
     <div>
-        <h1 class="page-title">Xin chào, @fullName</h1>
-        <p class="page-subtitle">Trang tổng quan sẽ được hoàn thiện ở Bước 6 (MH08).</p>
+        <h1 class="page-title"><span class="title-dot" aria-hidden="true"></span>Tổng quan</h1>
+        <p class="page-subtitle">@dayName, @Model.Today.ToString("dd/MM/yyyy") • Số liệu từ các hóa đơn đã thanh toán</p>
     </div>
+    <form method="get" action="/manage" class="branch-picker" data-branch-form>
+        <label class="visually-hidden" for="dashboard-branch">Chi nhánh</label>
+        <select class="select" id="dashboard-branch" name="branchId">
+            <option value="">Tất cả chi nhánh</option>
+            @foreach (var b in Model.Branches)
+            {
+                <option value="@b.Id" selected="@(b.Id == Model.BranchId)">@b.Name@(b.IsActive ? "" : " (tạm ngưng)")</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-sm" data-branch-submit>Xem</button>
+    </form>
 </div>
 
-<section class="card">
-    <p>Bạn đã đăng nhập với vai trò Chủ quán. Chọn một mục ở menu bên để bắt đầu quản trị quán.</p>
+<section class="dash-stats" aria-label="Số liệu hôm nay">
+    <div class="card dash-stat">
+        <span class="stat-label">Doanh thu hôm nay</span>
+        <strong class="stat-value">@InventoryText.Money(t.Revenue)</strong>
+        <span class="stat-icon" aria-hidden="true">₫</span>
+        <div class="stat-foot">
+            <span class="trend @revenueTrend.Item2">@revenueTrend.Item1</span>
+            <span class="stat-prev">Hôm qua: @InventoryText.Money(y.Revenue)</span>
+        </div>
+    </div>
+    <div class="card dash-stat">
+        <span class="stat-label">Số hóa đơn</span>
+        <strong class="stat-value">@t.Orders.ToString("#,##0", vi)</strong>
+        <span class="stat-icon" aria-hidden="true">▤</span>
+        <div class="stat-foot">
+            <span class="trend @ordersTrend.Item2">@ordersTrend.Item1</span>
+            <span class="stat-prev">Hôm qua: @y.Orders.ToString("#,##0", vi)</span>
+        </div>
+    </div>
+    <div class="card dash-stat">
+        <span class="stat-label">Trung bình mỗi hóa đơn</span>
+        <strong class="stat-value">@InventoryText.Money(t.Average)</strong>
+        <span class="stat-icon" aria-hidden="true">▥</span>
+        <div class="stat-foot">
+            <span class="trend @averageTrend.Item2">@averageTrend.Item1</span>
+            <span class="stat-prev">Hôm qua: @InventoryText.Money(y.Average)</span>
+        </div>
+    </div>
 </section>
+
+<div class="dash-layout">
+    <div class="dash-main">
+        @if (t.Orders == 0)
+        {
+            <section class="card dash-empty">
+                <div class="state">
+                    <span class="empty-icon" aria-hidden="true">▤</span>
+                    <p class="state-title">Chưa có hóa đơn nào hôm nay</p>
+                    <p>Số liệu sẽ được cập nhật sau khi thu ngân thanh toán hóa đơn đầu tiên trong ngày.</p>
+                </div>
+            </section>
+        }
+
+        <section class="card low-stock" aria-labelledby="low-stock-title">
+            <div class="low-head">
+                <span class="low-icon" aria-hidden="true">⚠</span>
+                <div class="low-title">
+                    <h2 class="section-title" id="low-stock-title">
+                        Nguyên liệu cần nhập
+                        @if (Model.NegativeCount > 0)
+                        {
+                            <span class="badge badge-danger"><span class="dot" aria-hidden="true"></span>@Model.NegativeCount âm kho</span>
+                        }
+                    </h2>
+                    <p class="muted">Nguyên liệu có tồn dưới mức tối thiểu</p>
+                </div>
+                <a class="link-arrow" href="/manage/inventory@(Model.BranchId is null ? "" : "?branchId=" + Model.BranchId)">Xem kho nguyên liệu →</a>
+            </div>
+
+            @if (Model.LowStockTotal == 0)
+            {
+                <div class="state"><p>Mọi nguyên liệu đều đủ mức tối thiểu.</p></div>
+            }
+            else
+            {
+                <table class="low-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nguyên liệu</th>
+                            <th scope="col">Chi nhánh</th>
+                            <th scope="col" class="num">Tồn hiện tại</th>
+                            <th scope="col" class="num">Mức tối thiểu</th>
+                            <th scope="col">Tình trạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.LowStock)
+                        {
+                            <tr class="low-row @(r.Status == StockStatus.Negative ? "is-negative" : "is-low")">
+                                <th scope="row" class="col-name">
+                                    @r.IngredientName
+                                    <span class="low-sub">@r.BranchName • Tối thiểu @InventoryText.Qty(r.MinStock) @r.Unit</span>
+                                </th>
+                                <td class="col-branch">@r.BranchName</td>
+                                <td class="num col-qty">@InventoryText.Qty(r.Quantity) @r.Unit</td>
+                                <td class="num col-min">@InventoryText.Qty(r.MinStock) @r.Unit</td>
+                                <td class="col-status">
+                                    @if (r.Status == StockStatus.Negative)
+                                    {
+                                        <span class="badge badge-danger"><span class="dot" aria-hidden="true"></span>Âm kho</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warn"><span class="dot" aria-hidden="true"></span>Dưới mức</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (Model.LowStockTotal > Model.LowStock.Count)
+                {
+                    <p class="low-more">Còn @(Model.LowStockTotal - Model.LowStock.Count) nguyên liệu khác – xem đủ ở Kho nguyên liệu.</p>
+                }
+                <p class="low-note"><span aria-hidden="true">ⓘ</span> Tồn âm nghĩa là đã bán nhiều hơn số đã nhập. Hãy lập phiếu nhập bù.</p>
+            }
+        </section>
+    </div>
+
+    <aside class="dash-side">
+        <section class="card plan-card" aria-labelledby="plan-title">
+            <div class="plan-head">
+                <h2 class="section-title" id="plan-title">Thông tin gói dịch vụ</h2>
+                <span class="badge @planCss"><span class="dot" aria-hidden="true"></span>@planText</span>
+            </div>
+            <div class="plan-name">
+                <span class="muted">Loại đăng ký</span>
+                <strong>Gói @u.PlanName</strong>
+            </div>
+            @if (u.PlanExpiresAt is { } expires)
+            {
+                <p class="plan-expiry @(daysLeft <= 7 ? "is-soon" : "")">
+                    Hết hạn ngày @expires.ToString("dd/MM/yyyy")
+                    (@(daysLeft < 0 ? $"quá hạn {-daysLeft} ngày" : $"còn {daysLeft} ngày"))
+                </p>
+            }
+            else
+            {
+                <p class="plan-expiry">Không giới hạn thời hạn</p>
+            }
+            <div class="plan-usage">
+                <div class="plan-usage-row">
+                    <span class="muted">Số lượng chi nhánh</span>
+                    <strong>@u.BranchCount/@u.MaxBranches chi nhánh – còn @Math.Max(0, u.MaxBranches - u.BranchCount)</strong>
+                </div>
+                <progress class="plan-bar @(u.BranchCount >= u.MaxBranches ? "is-full" : "")" max="@u.MaxBranches" value="@u.BranchCount">@u.BranchCount/@u.MaxBranches</progress>
+            </div>
+            <div class="plan-usage">
+                <div class="plan-usage-row">
+                    <span class="muted">Nhân viên kích hoạt</span>
+                    <strong>@u.StaffCount/@u.MaxStaff nhân viên – còn @Math.Max(0, u.MaxStaff - u.StaffCount)</strong>
+                </div>
+                <progress class="plan-bar @(u.StaffCount >= u.MaxStaff ? "is-full" : "")" max="@u.MaxStaff" value="@u.StaffCount">@u.StaffCount/@u.MaxStaff</progress>
+            </div>
+            <div class="plan-help">
+                <strong>Nâng cấp &amp; hỗ trợ</strong>
+                <p>Cần thêm chi nhánh hoặc nhân viên? Liên hệ nhà cung cấp dịch vụ để đổi gói.</p>
+            </div>
+        </section>
+
+        <section class="card quick-card" aria-labelledby="quick-title">
+            <h2 class="section-title" id="quick-title">Thao tác nhanh</h2>
+            <div class="quick-grid">
+                <a class="quick-action" href="/manage/inventory/receipts/new"><span class="quick-icon" aria-hidden="true">⊞</span>Tạo phiếu nhập</a>
+                <a class="quick-action" href="/manage/products"><span class="quick-icon" aria-hidden="true">✚</span>Thêm món</a>
+                <a class="quick-action" href="/manage/staff"><span class="quick-icon" aria-hidden="true">👤</span>Thêm nhân viên</a>
+                <a class="quick-action" href="/manage/reports"><span class="quick-icon" aria-hidden="true">📈</span>Xem báo cáo</a>
+            </div>
+        </section>
+    </aside>
+</div>
+
+@section Scripts {
+    <script src="~/js/manage/dashboard.js" asp-append-version="true"></script>
+}
