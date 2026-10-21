@@ -1,0 +1,115 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Tồn kho của một chi nhánh (Partial View): 4 thẻ số liệu + bảng (< 768px là thẻ). Tình trạng tính khi hiển thị. *@
+@model StockListResult
+@{
+    var today = BTL_WEB_NC.Infrastructure.VietnamTime.Today;
+    var s = Model.Summary;
+    var shown = Model.Items.Count == 0 ? 0 : (Model.Page - 1) * StockListQuery.PageSize + Model.Items.Count;
+    string RowClass(StockStatus status) => status switch
+    {
+        StockStatus.Negative => "is-negative",
+        StockStatus.Low => "is-low",
+        _ => "is-enough"
+    };
+}
+<div data-list-meta data-page="@Model.Page" data-need="@s.NeedRestock">
+    <section class="stock-stats" aria-label="Số liệu tồn kho tại @Model.Branch.Name">
+        <div class="card stat-card">
+            <span class="stat-label">Tổng mặt hàng</span>
+            <strong class="stat-value">@s.Total</strong>
+            <span class="stat-icon" aria-hidden="true">▣</span>
+        </div>
+        <div class="card stat-card stat-danger">
+            <span class="stat-label">Cảnh báo tồn âm</span>
+            <strong class="stat-value">@s.Negative</strong>
+            <span class="stat-icon" aria-hidden="true">!</span>
+        </div>
+        <div class="card stat-card stat-warn">
+            <span class="stat-label">Dưới mức tối thiểu</span>
+            <strong class="stat-value">@s.Low</strong>
+            <span class="stat-icon" aria-hidden="true">▲</span>
+        </div>
+        <div class="card stat-card stat-ok">
+            <span class="stat-label">Mức dự trữ an toàn</span>
+            <strong class="stat-value">@s.Enough/@s.Total</strong>
+            <span class="stat-icon" aria-hidden="true">✓</span>
+        </div>
+    </section>
+
+    <section class="card stock-panel" aria-label="Tồn kho tại @Model.Branch.Name">
+        @if (Model.TotalCount == 0)
+        {
+            <div class="state">
+                @if (s.Total == 0)
+                {
+                    <p class="state-title">Quán chưa có nguyên liệu</p>
+                    <p>Khai báo nguyên liệu trước, sau đó lập phiếu nhập để có tồn kho.</p>
+                    <a class="btn" href="/manage/inventory/ingredients">Thêm nguyên liệu</a>
+                }
+                else if (Model.Query.NeedOnly && string.IsNullOrWhiteSpace(Model.Query.Q))
+                {
+                    <p class="state-title">Không có nguyên liệu cần nhập</p>
+                    <p>Mọi nguyên liệu tại @Model.Branch.Name đều đủ mức tối thiểu.</p>
+                }
+                else
+                {
+                    <p class="state-title">Không tìm thấy nguyên liệu phù hợp</p>
+                    <p>Thử đổi từ khóa hoặc tắt "Chỉ xem nguyên liệu cần nhập".</p>
+                    <button type="button" class="btn" data-action="clear-filters">Xóa bộ lọc</button>
+                }
+            </div>
+        }
+        else
+        {
+            <table class="stock-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Nguyên liệu</th>
+                        <th scope="col" class="num">Tồn hiện tại</th>
+                        <th scope="col" class="num">Mức tối thiểu</th>
+                        <th scope="col">Tình trạng</th>
+                        <th scope="col">Cập nhật</th>
+                        <th scope="col" class="actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Items)
+                    {
+                        <tr class="stock-row @RowClass(row.Status)" data-ingredient-id="@row.IngredientId" data-name="@row.Name">
+                            <th scope="row" class="col-name">
+                                <span class="stock-dot" aria-hidden="true"></span>
+                                <span>@row.Name</span>
+                                <span class="status-mobile"><partial name="_StockStatus" model="row.Status" /></span>
+                            </th>
+                            <td class="col-detail num stock-qty" data-label="Tồn hiện tại">@InventoryText.Qty(row.Quantity) @row.Unit</td>
+                            <td class="col-detail num" data-label="Mức tối thiểu">@InventoryText.Qty(row.MinStock) @row.Unit</td>
+                            <td class="col-status"><partial name="_StockStatus" model="row.Status" /></td>
+                            <td class="col-detail" data-label="Cập nhật">
+                                <span class="@(row.UpdatedAt is null ? "never" : "")">@InventoryText.Updated(row.UpdatedAt, today)</span>
+                            </td>
+                            <td class="col-actions">
+                                @if (row.Status == StockStatus.Enough)
+                                {
+                                    <button type="button" class="btn btn-sm" data-action="detail">Chi tiết</button>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-sm btn-import"
+                                       href="/manage/inventory/receipts/new?branchId=@Model.Branch.Id&amp;ingredientId=@row.IngredientId">Nhập hàng</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <nav class="pagination" aria-label="Phân trang tồn kho">
+            <p class="pagination-info">Hiển thị <strong>@shown</strong> / @Model.TotalCount nguyên liệu tại <strong>@Model.Branch.Name</strong></p>
+            @if (Model.TotalPages > 1)
+            {
+                <partial name="_Pager" model='new PagerModel(Model.Page, Model.TotalPages, "Trang tồn kho")' />
+            }
+        </nav>
+    </section>
+</div>

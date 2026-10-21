@@ -1,0 +1,160 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH12 – Lập phiếu nhập kho (P06 bước 2–3, BM07). Dòng nguyên liệu tạo từ <template> bằng cloneNode; JS tính
+   thành tiền để xem trước, server tính lại toàn bộ khi lưu. *@
+@model NewReceiptPageModel
+@{
+    ViewData["Title"] = "Lập phiếu nhập";
+    ViewData["Parent"] = ((string Href, string Text)?)("/manage/inventory", "Kho nguyên liệu");
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/inventory.css" asp-append-version="true" />
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Lập phiếu nhập kho</h1>
+        <p class="page-subtitle">Ghi nhận nguyên liệu nhập từ nhà cung cấp vào kho chi nhánh.</p>
+    </div>
+</div>
+
+@if (Model.Branches.Count == 0 || Model.Ingredients.Count == 0)
+{
+    <section class="card">
+        <div class="state">
+            <p class="state-title">Chưa lập được phiếu nhập</p>
+            <p>@(Model.Branches.Count == 0 ? "Quán chưa có chi nhánh nào." : "Quán chưa có nguyên liệu nào. Khai báo nguyên liệu trước khi nhập kho.")</p>
+            <a class="btn" href="@(Model.Branches.Count == 0 ? "/manage/branches" : "/manage/inventory/ingredients")">
+                @(Model.Branches.Count == 0 ? "Đến Chi nhánh và bàn" : "Đến tab Nguyên liệu")
+            </a>
+        </div>
+    </section>
+}
+else
+{
+    <form id="receipt-form" class="receipt-form" novalidate data-prefill-ingredient="@Model.IngredientId">
+        <section class="card form-block">
+            <div class="block-head">
+                <h2 class="section-title"><span aria-hidden="true">▤</span> 1. Thông tin phiếu nhập</h2>
+                <span class="muted block-note">Dấu (*) là trường bắt buộc</span>
+            </div>
+            <div class="receipt-info">
+                <div class="field">
+                    <label class="field-label" for="receipt-branch">Chi nhánh nhập <span class="required">*</span></label>
+                    <select class="select" id="receipt-branch" name="branchId" required>
+                        @foreach (var b in Model.Branches)
+                        {
+                            <option value="@b.Id" selected="@(b.Id == Model.BranchId)">@b.Name@(b.IsActive ? "" : " (tạm ngưng)")</option>
+                        }
+                    </select>
+                    <span class="field-error" data-error-for="branchId"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="receipt-date">Ngày nhập <span class="required">*</span></label>
+                    <input class="input" id="receipt-date" name="receivedDate" type="date" required
+                           value="@Model.Today.ToString("yyyy-MM-dd")" max="@Model.Today.ToString("yyyy-MM-dd")" />
+                    <span class="field-hint">Ngày hàng thực tế về kho, không sau hôm nay.</span>
+                    <span class="field-error" data-error-for="receivedDate"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="receipt-supplier">Nhà cung cấp</label>
+                    <input class="input" id="receipt-supplier" name="supplier" maxlength="100" autocomplete="off" placeholder="Ví dụ: Cà phê Phúc Long Sơn" />
+                    <span class="field-error" data-error-for="supplier"></span>
+                </div>
+            </div>
+            <p class="code-note">
+                <span aria-hidden="true">ⓘ</span>
+                Số phiếu tạo tự động khi lưu (dạng PN-YYMM-XXX) – Dự kiến: <strong>@Model.NextCode</strong>
+            </p>
+        </section>
+
+        <section class="card form-block">
+            <div class="block-head">
+                <h2 class="section-title"><span aria-hidden="true">☰</span> 2. Danh mục nguyên liệu nhập kho</h2>
+                <span class="muted block-note"><span data-line-count>0</span> dòng khai báo</span>
+            </div>
+
+            <div class="line-table" role="table" aria-label="Các dòng nguyên liệu nhập kho">
+                <div class="line-head" role="row">
+                    <span role="columnheader">Nguyên liệu</span>
+                    <span role="columnheader">Đơn vị nhập</span>
+                    <span role="columnheader" class="num">Quy đổi</span>
+                    <span role="columnheader" class="num">Số lượng</span>
+                    <span role="columnheader" class="num">Đơn giá (đ)</span>
+                    <span role="columnheader" class="num">Thành tiền (đ)</span>
+                    <span role="columnheader"><span class="visually-hidden">Thao tác</span></span>
+                </div>
+                <div data-lines></div>
+            </div>
+            <p class="field-error" data-error-for="lines"></p>
+            <button type="button" class="btn btn-ghost add-line" data-action="add-line">⊕ + Thêm dòng</button>
+        </section>
+
+        <section class="card receipt-foot">
+            <div class="foot-note">
+                <span class="foot-icon" aria-hidden="true">⛨</span>
+                <div>
+                    <p class="foot-title">Kiểm soát định lượng &amp; giá trị nhập</p>
+                    <p class="muted">Tồn kho chi nhánh <strong data-branch-name></strong> được cộng ngay khi lưu. Phiếu đã lưu không sửa, không xóa.</p>
+                </div>
+            </div>
+            <div class="foot-total">
+                <span class="foot-total-label">Tổng giá trị đơn nhập</span>
+                <strong class="foot-total-value" data-grand-total aria-live="polite">0 đ</strong>
+            </div>
+            <p class="field-error foot-error" data-error-for=""></p>
+            <div class="foot-actions">
+                <a class="btn" href="/manage/inventory/receipts">Hủy</a>
+                <button type="submit" class="btn btn-primary" data-submit>Lưu phiếu nhập</button>
+            </div>
+        </section>
+    </form>
+
+    <template id="line-template">
+        <div class="receipt-line" role="row">
+            <div class="line-cell line-ingredient" role="cell">
+                <label class="cell-label" data-label-for="ingredientId">Nguyên liệu</label>
+                <select class="select" data-field="ingredientId">
+                    <option value="">Chọn nguyên liệu</option>
+                    @foreach (var i in Model.Ingredients)
+                    {
+                        <option value="@i.Id" data-unit="@i.Unit">@i.Name (đơn vị cơ sở: @i.Unit)</option>
+                    }
+                </select>
+                <span class="line-hint" data-line-hint>Chưa chọn nguyên liệu</span>
+                <span class="field-error" data-error-field="ingredientId"></span>
+            </div>
+            <div class="line-cell" role="cell">
+                <label class="cell-label" data-label-for="purchaseUnit">Đơn vị nhập</label>
+                <input class="input" data-field="purchaseUnit" maxlength="20" autocomplete="off" placeholder="kg, hộp…" />
+                <span class="field-error" data-error-field="purchaseUnit"></span>
+            </div>
+            <div class="line-cell num" role="cell">
+                <label class="cell-label" data-label-for="conversionRate">Quy đổi</label>
+                <input class="input" data-field="conversionRate" type="number" inputmode="decimal" min="0.001" step="0.001" />
+                <span class="line-hint" data-rate-hint></span>
+                <span class="field-error" data-error-field="conversionRate"></span>
+            </div>
+            <div class="line-cell num" role="cell">
+                <label class="cell-label" data-label-for="quantity">Số lượng</label>
+                <input class="input" data-field="quantity" type="number" inputmode="decimal" min="0.001" step="0.001" />
+                <span class="field-error" data-error-field="quantity"></span>
+            </div>
+            <div class="line-cell num" role="cell">
+                <label class="cell-label" data-label-for="unitPrice">Đơn giá (đ)</label>
+                <input class="input" data-field="unitPrice" type="number" inputmode="numeric" min="0" step="1" />
+                <span class="field-error" data-error-field="unitPrice"></span>
+            </div>
+            <div class="line-cell num line-amount" role="cell">
+                <span class="cell-label">Thành tiền</span>
+                <strong data-line-amount>0 đ</strong>
+            </div>
+            <div class="line-cell line-remove" role="cell">
+                <button type="button" class="icon-btn" data-action="remove-line" aria-label="Xóa dòng">🗑</button>
+            </div>
+        </div>
+    </template>
+}
+
+@section Scripts {
+    <script src="~/js/manage/receipt-form.js" asp-append-version="true"></script>
+}

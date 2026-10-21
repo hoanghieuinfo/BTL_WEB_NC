@@ -1,0 +1,49 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Hộp thoại Chi tiết ở tab Tồn kho: tồn hiện tại, món dùng nguyên liệu, 10 lần nhập gần nhất tại chi nhánh. *@
+@model StockDetail
+@{
+    var today = BTL_WEB_NC.Infrastructure.VietnamTime.Today;
+    var stock = Model.Stock;
+}
+<div data-detail-meta data-name="@stock.Name" data-branch="@Model.Branch.Name"
+     data-import-href="/manage/inventory/receipts/new?branchId=@Model.Branch.Id&amp;ingredientId=@stock.IngredientId"></div>
+
+<dl class="detail-facts">
+    <div><dt>Tồn hiện tại</dt><dd class="stock-qty">@InventoryText.Qty(stock.Quantity) @stock.Unit</dd></div>
+    <div><dt>Mức tối thiểu</dt><dd>@InventoryText.Qty(stock.MinStock) @stock.Unit</dd></div>
+    <div><dt>Tình trạng</dt><dd><partial name="_StockStatus" model="stock.Status" /></dd></div>
+    <div><dt>Cập nhật</dt><dd>@InventoryText.Updated(stock.UpdatedAt, today)</dd></div>
+</dl>
+
+<h3 class="detail-heading">Dùng trong định lượng</h3>
+@if (Model.UsedIn.Count == 0)
+{
+    <p class="muted">Chưa món nào dùng nguyên liệu này – bán hàng không làm giảm tồn.</p>
+}
+else
+{
+    <ul class="detail-list">
+        @foreach (var u in Model.UsedIn)
+        {
+            <li><span>@u.ProductName</span><span>@InventoryText.Qty(u.Quantity) @stock.Unit / phần</span></li>
+        }
+    </ul>
+}
+
+<h3 class="detail-heading">Nhập gần đây tại @Model.Branch.Name</h3>
+@if (Model.History.Count == 0)
+{
+    <p class="muted">Chưa có phiếu nhập nào cho nguyên liệu này tại chi nhánh.</p>
+}
+else
+{
+    <ul class="detail-list">
+        @foreach (var h in Model.History)
+        {
+            <li>
+                <span><strong>@h.Code</strong> · @h.ReceivedDate.ToString("dd/MM/yyyy")</span>
+                <span>@InventoryText.Qty(h.Quantity) @h.PurchaseUnit → +@InventoryText.Qty(h.BaseQuantity) @stock.Unit</span>
+            </li>
+        }
+    </ul>
+}

@@ -1,0 +1,111 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH12 – Tab Nguyên liệu (P06 bước 1, R18): danh sách AJAX + panel Thêm/Sửa nguyên liệu. *@
+@model IngredientPageModel
+@{
+    ViewData["Title"] = "Kho nguyên liệu";
+    var quickUnits = new[] { "g", "ml", "cái", "quả" };
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/inventory.css" asp-append-version="true" />
+}
+
+<partial name="_InventoryHeader" model="Model.Header" />
+
+<div class="ingredient-layout">
+    <div class="ingredient-main">
+        <form class="card filter-bar ingredient-filter" data-filter-form role="search">
+            <label class="search-field">
+                <span class="visually-hidden">Tìm nguyên liệu theo tên</span>
+                <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+                <input type="search" class="input" name="q" placeholder="Tìm kiếm nguyên liệu theo tên..." maxlength="100" autocomplete="off" />
+            </label>
+            <label>
+                <span class="visually-hidden">Lọc theo đơn vị</span>
+                <select class="select" name="unit" data-unit-filter>
+                    <option value="">Đơn vị: Tất cả</option>
+                    @foreach (var u in Model.Units)
+                    {
+                        <option value="@u">Đơn vị: @u</option>
+                    }
+                </select>
+            </label>
+            <button type="button" class="btn btn-icon-lg" data-action="retry" aria-label="Tải lại danh sách">↻</button>
+        </form>
+
+        <section class="card ingredient-panel" data-ingredient-list aria-live="polite" aria-busy="true" aria-label="Danh sách nguyên liệu">
+            <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải nguyên liệu...</span></div>
+        </section>
+    </div>
+
+    <aside class="card ingredient-side" aria-labelledby="ingredient-form-title">
+        <form id="ingredient-form" class="form" novalidate>
+            <div class="side-head">
+                <span class="modal-icon" aria-hidden="true" data-form-icon>+</span>
+                <h2 class="section-title" id="ingredient-form-title">Thêm nguyên liệu</h2>
+                <button type="button" class="link-btn side-reset" data-action="reset-form">Đặt lại</button>
+            </div>
+            <p class="muted side-hint" data-form-hint>Nguyên liệu dùng trong định lượng món và phiếu nhập kho.</p>
+
+            <div class="field">
+                <div class="field-label-row">
+                    <label class="field-label" for="ing-name">Tên nguyên liệu <span class="required">*</span></label>
+                    <span class="field-tag" data-name-tag hidden>Đã tồn tại</span>
+                </div>
+                <input class="input" id="ing-name" name="name" maxlength="100" required autocomplete="off" />
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="ing-unit">Đơn vị cơ sở <span class="required">*</span></label>
+                <div class="unit-field">
+                    <input class="input" id="ing-unit" name="unit" maxlength="20" required autocomplete="off" />
+                    <span class="unit-chips" role="group" aria-label="Chọn nhanh đơn vị">
+                        @foreach (var u in quickUnits)
+                        {
+                            <button type="button" class="unit-chip" data-unit="@u">@u</button>
+                        }
+                    </span>
+                </div>
+                <span class="field-hint" data-unit-hint>Định lượng món và tồn kho đều tính theo đơn vị này.</span>
+                <span class="field-error" data-error-for="unit"></span>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="ing-min">Mức tồn tối thiểu <span class="required">*</span></label>
+                <div class="input-affix">
+                    <input class="input" id="ing-min" name="minStock" type="number" inputmode="decimal" min="0" step="0.001" required />
+                    <span class="affix" data-min-unit></span>
+                </div>
+                <span class="field-hint">Tồn dưới mức này sẽ hiện cảnh báo ở tab Tồn kho và trang Tổng quan.</span>
+                <span class="field-error" data-error-for="minStock"></span>
+            </div>
+            <p class="field-error" data-error-for=""></p>
+
+            <button type="submit" class="btn btn-primary btn-block" data-submit>+ Lưu nguyên liệu</button>
+            <button type="button" class="btn btn-danger btn-block" data-action="delete-ingredient" hidden>Xóa nguyên liệu</button>
+        </form>
+    </aside>
+</div>
+
+<template id="ingredient-loading-template">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải nguyên liệu...</span></div>
+</template>
+
+<dialog class="modal modal-sm modal-confirm" id="confirm-modal" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="modal-head">
+        <span class="modal-icon modal-icon-danger" aria-hidden="true">!</span>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body">
+        <h2 class="modal-title" id="confirm-title" data-confirm-title></h2>
+        <p id="confirm-message" data-confirm-message class="confirm-text"></p>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="btn" data-close>Hủy</button>
+        <button type="button" class="btn btn-danger-solid" data-confirm-ok>Xóa</button>
+    </div>
+</dialog>
+
+@section Scripts {
+    <script src="~/js/manage/inventory-ingredients.js" asp-append-version="true"></script>
+}

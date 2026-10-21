@@ -1,0 +1,30 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Nút phân trang (cùng kiểu MH10/MH11): JS bắt click trên [data-page]. *@
+@model PagerModel
+@{
+    var pages = new List<int?>();
+    for (var p = 1; p <= Model.TotalPages; p++)
+    {
+        if (p == 1 || p == Model.TotalPages || Math.Abs(p - Model.Page) <= 1) pages.Add(p);
+        else if (pages.Count > 0 && pages[^1] is not null) pages.Add(null);
+    }
+}
+<div class="pagination-pages" role="group" aria-label="@Model.Label">
+    <button type="button" class="page-btn" data-page="@(Model.Page - 1)" disabled="@(Model.Page <= 1)">‹ Trước</button>
+    @foreach (var p in pages)
+    {
+        if (p is null)
+        {
+            <span class="page-gap" aria-hidden="true">…</span>
+        }
+        else if (p == Model.Page)
+        {
+            <button type="button" class="page-btn is-current" aria-current="page" data-page="@p">@p</button>
+        }
+        else
+        {
+            <button type="button" class="page-btn" data-page="@p" aria-label="Trang @p">@p</button>
+        }
+    }
+    <button type="button" class="page-btn" data-page="@(Model.Page + 1)" disabled="@(Model.Page >= Model.TotalPages)">Sau ›</button>
+</div>

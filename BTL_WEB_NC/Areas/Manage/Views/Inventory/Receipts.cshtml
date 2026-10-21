@@ -1,0 +1,71 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH12 – Tab Phiếu nhập (BM07): lọc chi nhánh/tháng/từ khóa, tổng chi trong kỳ, xem chi tiết phiếu. *@
+@model ReceiptPageModel
+@{
+    ViewData["Title"] = "Kho nguyên liệu";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/inventory.css" asp-append-version="true" />
+}
+
+<partial name="_InventoryHeader" model="Model.Header" />
+
+<div class="receipt-top">
+    <form class="card filter-bar receipt-filter" data-filter-form role="search">
+        <label>
+            <span class="visually-hidden">Lọc theo chi nhánh</span>
+            <select class="select" name="branchId">
+                <option value="">Tất cả chi nhánh (@Model.Branches.Count)</option>
+                @foreach (var b in Model.Branches)
+                {
+                    <option value="@b.Id">@b.Name@(b.IsActive ? "" : " (tạm ngưng)")</option>
+                }
+            </select>
+        </label>
+        <label>
+            <span class="visually-hidden">Tháng nhập (để trống: mọi thời gian)</span>
+            <input type="month" class="input" name="month" value="@Model.CurrentMonth" data-default-month="@Model.CurrentMonth" />
+        </label>
+        <label class="search-field">
+            <span class="visually-hidden">Tìm số phiếu hoặc nhà cung cấp</span>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            <input type="search" class="input" name="q" placeholder="Tìm số phiếu, nhà cung cấp..." maxlength="100" autocomplete="off" />
+        </label>
+        <button type="button" class="btn btn-icon-lg" data-action="clear-filters" aria-label="Xóa bộ lọc">✕</button>
+    </form>
+
+    <div class="card receipt-total" aria-live="polite">
+        <span class="receipt-total-icon" aria-hidden="true">₫</span>
+        <div>
+            <p class="receipt-total-label" data-total-label>Tổng chi</p>
+            <strong class="receipt-total-value" data-total-value>–</strong>
+        </div>
+        <span class="badge badge-success" data-total-count></span>
+    </div>
+</div>
+
+<section class="card receipt-panel" data-receipt-list aria-live="polite" aria-busy="true" aria-label="Danh sách phiếu nhập">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải phiếu nhập...</span></div>
+</section>
+
+<template id="receipt-loading-template">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải phiếu nhập...</span></div>
+</template>
+
+<dialog class="modal modal-lg" id="receipt-modal" aria-labelledby="receipt-title">
+    <div class="modal-head">
+        <div>
+            <h2 class="modal-title" id="receipt-title">Phiếu nhập kho</h2>
+            <p class="modal-subtitle">Biểu mẫu BM07 – phiếu đã lưu không sửa, không xóa.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body receipt-detail-body" data-receipt-body aria-live="polite"></div>
+    <div class="modal-foot">
+        <button type="button" class="btn" data-close>Đóng</button>
+    </div>
+</dialog>
+
+@section Scripts {
+    <script src="~/js/manage/inventory-receipts.js" asp-append-version="true"></script>
+}

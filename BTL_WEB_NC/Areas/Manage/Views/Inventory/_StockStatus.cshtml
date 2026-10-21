@@ -1,0 +1,14 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@model StockStatus
+@switch (Model)
+{
+    case StockStatus.Negative:
+        <span class="badge badge-danger"><span class="dot" aria-hidden="true"></span>Âm kho</span>
+        break;
+    case StockStatus.Low:
+        <span class="badge badge-warn"><span class="dot" aria-hidden="true"></span>Dưới mức</span>
+        break;
+    default:
+        <span class="badge badge-success"><span class="dot" aria-hidden="true"></span>Đủ</span>
+        break;
+}

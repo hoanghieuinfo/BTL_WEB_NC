@@ -1,0 +1,88 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Danh sách phiếu nhập (Partial View). Tổng chi của kỳ đang lọc đưa lên thẻ bên trên qua data-*. *@
+@model ReceiptListResult
+@{
+    var month = Model.Query.MonthStart;
+    var totalLabel = month is { } m ? $"Tổng chi tháng {m:MM/yyyy}" : "Tổng chi mọi thời gian";
+    static string Initials(string? name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => "–",
+            1 => parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant(),
+            _ => (parts[0][..1] + parts[^1][..1]).ToUpperInvariant()
+        };
+    }
+}
+<div data-list-meta data-page="@Model.Page" data-total-label="@totalLabel"
+     data-total-value="@InventoryText.Money(Model.PeriodTotal)" data-total-count="@Model.TotalCount phiếu">
+@if (Model.TotalCount == 0)
+{
+    <div class="state">
+        @if (Model.Query.HasFilter)
+        {
+            <p class="state-title">Không có phiếu nhập phù hợp</p>
+            <p>Thử đổi chi nhánh, tháng hoặc từ khóa.</p>
+            <button type="button" class="btn" data-action="clear-filters">Xóa bộ lọc</button>
+        }
+        else
+        {
+            <p class="state-title">@(month is null ? "Chưa có phiếu nhập nào" : "Chưa có phiếu nhập trong tháng này")</p>
+            <p>Lập phiếu nhập để cộng nguyên liệu vào tồn kho chi nhánh.</p>
+            <a class="btn btn-primary" href="/manage/inventory/receipts/new">+ Lập phiếu nhập</a>
+        }
+    </div>
+}
+else
+{
+    <table class="receipt-table">
+        <thead>
+            <tr>
+                <th scope="col">Số phiếu</th>
+                <th scope="col">Ngày nhập</th>
+                <th scope="col">Chi nhánh</th>
+                <th scope="col">Nhà cung cấp</th>
+                <th scope="col">Người nhập</th>
+                <th scope="col" class="num">Tổng tiền</th>
+                <th scope="col" class="actions">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Items)
+            {
+                <tr class="receipt-row" data-receipt-id="@r.Id" data-code="@r.Code">
+                    <th scope="row" class="col-code">
+                        <button type="button" class="link-btn" data-action="view">▤ @r.Code</button>
+                    </th>
+                    <td class="col-detail" data-label="Ngày nhập">@r.ReceivedDate.ToString("dd/MM/yyyy")</td>
+                    <td class="col-detail" data-label="Chi nhánh"><span class="branch-pill"><span class="dot" aria-hidden="true"></span>@r.BranchName</span></td>
+                    <td class="col-detail" data-label="Nhà cung cấp">
+                        @if (r.Supplier is null)
+                        {
+                            <span class="muted">Không ghi</span>
+                        }
+                        else
+                        {
+                            <span class="supplier"><span class="supplier-mark" aria-hidden="true">@Initials(r.Supplier)</span>@r.Supplier</span>
+                        }
+                    </td>
+                    <td class="col-detail" data-label="Người nhập">@r.CreatedBy</td>
+                    <td class="col-detail num col-total" data-label="Tổng tiền">@InventoryText.Money(r.TotalAmount)</td>
+                    <td class="col-actions">
+                        <button type="button" class="btn btn-sm" data-action="view" aria-label="Xem chi tiết phiếu @r.Code">Xem chi tiết</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav class="pagination" aria-label="Phân trang phiếu nhập">
+        <p class="pagination-info">Hiển thị <strong>@Model.From–@Model.To</strong> của <strong>@Model.TotalCount</strong> phiếu nhập</p>
+        @if (Model.TotalPages > 1)
+        {
+            <partial name="_Pager" model='new PagerModel(Model.Page, Model.TotalPages, "Trang phiếu nhập")' />
+        }
+    </nav>
+}
+</div>

@@ -14,6 +14,8 @@
     };
     var tenantInitial = usage.TenantName.Length > 0 ? usage.TenantName[..1] : "?";
     var currentController = ViewContext.RouteData.Values["controller"] as string;
+    // Trang con (ví dụ Lập phiếu nhập) đặt ViewData["Parent"] = (Href, Text) để breadcrumb có thêm cấp cha.
+    var parent = ViewData["Parent"] as (string Href, string Text)?;
 
     var nav = new[]
     {
@@ -83,7 +85,7 @@
             </div>
 
             <nav class="breadcrumb breadcrumb-top" aria-label="Đường dẫn">
-                <span>@usage.TenantName</span><span class="breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">@title</span>
+                <span>@usage.TenantName</span><span class="breadcrumb-sep" aria-hidden="true">/</span>@if (parent is not null){<a href="@parent.Value.Href">@parent.Value.Text</a><span class="breadcrumb-sep" aria-hidden="true">/</span>}<span aria-current="page">@title</span>
             </nav>
 
             <details class="user-menu">
@@ -104,7 +106,7 @@
 
         <main class="content" id="main">
             <nav class="breadcrumb breadcrumb-inline" aria-label="Đường dẫn">
-                <span>@usage.TenantName</span><span class="breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">@title</span>
+                <span>@usage.TenantName</span><span class="breadcrumb-sep" aria-hidden="true">/</span>@if (parent is not null){<a href="@parent.Value.Href">@parent.Value.Text</a><span class="breadcrumb-sep" aria-hidden="true">/</span>}<span aria-current="page">@title</span>
             </nav>
             @RenderBody()
         </main>

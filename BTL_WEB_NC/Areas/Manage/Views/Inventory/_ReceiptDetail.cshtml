@@ -1,0 +1,56 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Chi tiết phiếu nhập theo BM07: đầu phiếu + bảng dòng (STT, nguyên liệu, đơn vị, quy đổi, số lượng, đơn giá, thành tiền). *@
+@model ReceiptDetail
+<div data-receipt-meta data-code="@Model.Code"></div>
+
+<dl class="detail-facts receipt-facts">
+    <div><dt>Số phiếu</dt><dd>@Model.Code</dd></div>
+    <div><dt>Ngày nhập</dt><dd>@Model.ReceivedDate.ToString("dd/MM/yyyy")</dd></div>
+    <div><dt>Chi nhánh</dt><dd>@Model.BranchName</dd></div>
+    <div><dt>Nhà cung cấp</dt><dd>@(Model.Supplier ?? "Không ghi")</dd></div>
+    <div><dt>Người nhập</dt><dd>@Model.CreatedBy</dd></div>
+</dl>
+
+<div class="table-scroll">
+    <table class="receipt-lines">
+        <thead>
+            <tr>
+                <th scope="col" class="num">STT</th>
+                <th scope="col">Nguyên liệu</th>
+                <th scope="col">Đơn vị</th>
+                <th scope="col" class="num">Số lượng</th>
+                <th scope="col" class="num">Đơn giá (đ)</th>
+                <th scope="col" class="num">Thành tiền (đ)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Model.Lines.Count; i++)
+            {
+                var line = Model.Lines[i];
+                <tr>
+                    <td class="num">@(i + 1)</td>
+                    <td>
+                        @line.IngredientName
+                        <span class="line-sub">Cộng @InventoryText.Qty(line.BaseQuantity) @line.BaseUnit vào kho</span>
+                    </td>
+                    <td>
+                        @line.PurchaseUnit
+                        @if (line.PurchaseUnit != line.BaseUnit || line.ConversionRate != 1)
+                        {
+                            <span class="line-sub">1 @line.PurchaseUnit = @InventoryText.Qty(line.ConversionRate) @line.BaseUnit</span>
+                        }
+                    </td>
+                    <td class="num">@InventoryText.Qty(line.Quantity)</td>
+                    <td class="num">@InventoryText.Qty(line.UnitPrice)</td>
+                    <td class="num strong">@InventoryText.Qty(line.Amount)</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th scope="row" colspan="5" class="num">Tổng cộng</th>
+                <td class="num strong">@InventoryText.Money(Model.TotalAmount)</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

@@ -1,0 +1,73 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Danh sách nguyên liệu (Partial View). Dữ liệu cho nút Sửa nằm trong data-* (Razor mã hóa). *@
+@model IngredientListResult
+@using System.Globalization
+<div data-list-meta data-page="@Model.Page" data-total="@Model.TotalCount">
+@if (Model.TotalCount == 0)
+{
+    <div class="state">
+        @if (Model.Query.HasFilter)
+        {
+            <p class="state-title">Không tìm thấy nguyên liệu phù hợp</p>
+            <p>Thử đổi từ khóa hoặc chọn "Đơn vị: Tất cả".</p>
+            <button type="button" class="btn" data-action="clear-filters">Xóa bộ lọc</button>
+        }
+        else
+        {
+            <p class="state-title">Quán chưa có nguyên liệu</p>
+            <p>Thêm nguyên liệu ở khung bên cạnh để khai báo định lượng món và nhập kho.</p>
+        }
+    </div>
+}
+else
+{
+    <table class="ingredient-table">
+        <thead>
+            <tr>
+                <th scope="col">Tên nguyên liệu</th>
+                <th scope="col" class="center">Đơn vị cơ sở</th>
+                <th scope="col" class="num">Mức tối thiểu</th>
+                <th scope="col">Dùng trong</th>
+                <th scope="col" class="actions">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in Model.Items)
+            {
+                <tr class="ingredient-row" data-id="@i.Id" data-name="@i.Name" data-unit="@i.Unit"
+                    data-min-stock="@i.MinStock.ToString("0.###", CultureInfo.InvariantCulture)"
+                    data-unit-locked="@(i.UnitLocked ? "true" : "false")" data-product-count="@i.ProductCount">
+                    <th scope="row" class="col-name">@i.Name</th>
+                    <td class="col-unit center"><span class="unit-pill">@i.Unit</span></td>
+                    <td class="col-detail num" data-label="Mức tối thiểu">@InventoryText.Qty(i.MinStock) @i.Unit</td>
+                    <td class="col-detail col-used" data-label="Dùng trong">
+                        @if (i.ProductCount > 0)
+                        {
+                            <span>☕ @i.ProductCount món</span>
+                        }
+                        else
+                        {
+                            <span class="muted">Chưa dùng</span>
+                        }
+                    </td>
+                    <td class="col-actions">
+                        <button type="button" class="btn btn-sm" data-action="edit" aria-label="Sửa @i.Name">Sửa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav class="pagination" aria-label="Phân trang nguyên liệu">
+        <p class="pagination-info">Hiển thị @Model.From–@Model.To trên <strong>@Model.TotalCount</strong> nguyên liệu</p>
+        @if (Model.TotalPages > 1)
+        {
+            <partial name="_Pager" model='new PagerModel(Model.Page, Model.TotalPages, "Trang nguyên liệu")' />
+        }
+        else
+        {
+            <strong>Trang 1 / 1</strong>
+        }
+    </nav>
+}
+</div>

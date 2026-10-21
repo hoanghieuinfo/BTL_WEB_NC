@@ -40,6 +40,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IBranchQrService, BranchQrService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IInventoryDeductionService, InventoryDeductionService>(); // Việc 12 – Module 3 gọi ở A16
 builder.Services.AddSingleton<IImageUploadService>(sp =>
     new ImageUploadService(sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 

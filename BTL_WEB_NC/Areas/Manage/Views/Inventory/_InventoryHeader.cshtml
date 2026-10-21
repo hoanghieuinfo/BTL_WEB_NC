@@ -1,0 +1,38 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Đầu trang chung của MH12: tiêu đề, nút Lập phiếu nhập, ba tab (mỗi tab một URL). *@
+@model InventoryHeaderModel
+@{
+    var tabs = new[]
+    {
+        (Key: "stock", Href: "/manage/inventory", Text: "Tồn kho"),
+        (Key: "ingredients", Href: "/manage/inventory/ingredients", Text: "Nguyên liệu"),
+        (Key: "receipts", Href: "/manage/inventory/receipts", Text: "Phiếu nhập"),
+    };
+}
+<div class="page-head inventory-head">
+    <div>
+        <h1 class="page-title">Kho nguyên liệu</h1>
+        <p class="page-subtitle">Danh mục nguyên liệu, tồn kho theo chi nhánh và phiếu nhập từ nhà cung cấp.</p>
+    </div>
+    <a class="btn btn-primary page-action" href="/manage/inventory/receipts/new">
+        <span aria-hidden="true">+</span> Lập phiếu nhập
+    </a>
+</div>
+
+<nav class="inventory-tabs" aria-label="Các phần của kho">
+    @foreach (var tab in tabs)
+    {
+        var active = tab.Key == Model.ActiveTab;
+        <a href="@tab.Href" class="inventory-tab @(active ? "is-active" : "")" aria-current="@(active ? "page" : null)">
+            <span>@tab.Text</span>
+            @if (tab.Key == "stock")
+            {
+                <span class="tab-badge tab-badge-warn" data-need-badge hidden></span>
+            }
+            else if (tab.Key == "ingredients")
+            {
+                <span class="tab-badge">@Model.IngredientCount</span>
+            }
+        </a>
+    }
+</nav>

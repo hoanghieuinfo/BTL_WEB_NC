@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace BTL_WEB_NC.Tests.Manage;
 
@@ -32,6 +33,16 @@ public class ManageExceptionFilterTests
         Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(result.Value, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         Assert.Equal("Quán đã có món \"Bạc xỉu\".", json.RootElement.GetProperty("data").GetProperty("errors").GetProperty("name")[0].GetString());
+    }
+
+    [Fact]
+    public void XungDotRowVersion_Tra409()
+    {
+        var context = Run(new DbUpdateConcurrencyException("RowVersion"));
+
+        var result = Assert.IsType<ObjectResult>(context.Result);
+        Assert.Equal(StatusCodes.Status409Conflict, result.StatusCode);
+        Assert.True(context.ExceptionHandled);
     }
 
     [Fact]
