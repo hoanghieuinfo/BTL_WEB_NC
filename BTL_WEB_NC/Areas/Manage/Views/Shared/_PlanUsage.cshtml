@@ -8,9 +8,9 @@
     <div class="usage-row">
         <div class="usage-label">
             <span>Chi nhánh đã dùng</span>
-            <span class="usage-value">@Model.BranchCount/@Model.MaxBranches</span>
+            <span class="usage-value" data-sidebar-usage="branches">@Model.BranchCount/@Model.MaxBranches</span>
         </div>
-        <progress class="usage-bar @(Model.BranchCount >= Model.MaxBranches ? "is-full" : "")"
+        <progress class="usage-bar @(Model.BranchCount >= Model.MaxBranches ? "is-full" : "")" data-sidebar-usage-bar="branches"
                   max="@Model.MaxBranches" value="@Model.BranchCount"
                   aria-label="Chi nhánh đã dùng @Model.BranchCount trên @Model.MaxBranches">@Percent(Model.BranchCount, Model.MaxBranches)%</progress>
     </div>

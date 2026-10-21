@@ -1,0 +1,68 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Bảng chi nhánh (Partial View). data-usage-* để JS cập nhật nhãn "x/y chi nhánh của gói" sau mỗi lần thêm. *@
+@model BranchListModel
+@{
+    static string Time(TimeOnly t) => t.ToString("HH:mm");
+}
+<div data-list-meta data-usage-count="@Model.Usage.BranchCount" data-usage-max="@Model.Usage.MaxBranches"
+     data-branch-count="@Model.Branches.Count" data-selected-id="@Model.SelectedId">
+    @if (Model.Branches.Count == 0)
+    {
+        <div class="state">
+            <p class="state-title">Chưa có chi nhánh nào</p>
+            <p>Bấm "Thêm chi nhánh" để khai báo địa điểm đầu tiên của quán.</p>
+        </div>
+    }
+    else
+    {
+        <table class="branch-table">
+            <thead>
+                <tr>
+                    <th scope="col">Chi nhánh</th>
+                    <th scope="col">Giờ mở cửa</th>
+                    <th scope="col" class="col-center">Số bàn</th>
+                    <th scope="col" class="col-center">Trạng thái</th>
+                    <th scope="col" class="col-actions">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.Branches)
+                {
+                    var selected = b.Id == Model.SelectedId;
+                    <tr class="branch-row @(selected ? "is-selected" : "")" data-branch-id="@b.Id"
+                        data-name="@b.Name" data-slug="@b.Slug" data-address="@b.Address" data-phone="@b.Phone"
+                        data-open="@Time(b.OpenTime)" data-close="@Time(b.CloseTime)" data-active="@(b.IsActive ? "true" : "false")"
+                        aria-current="@(selected ? "true" : null)">
+                        <td class="col-name">
+                            <button type="button" class="branch-select" data-action="select-branch" aria-pressed="@(selected ? "true" : "false")">
+                                <span class="branch-name">@b.Name @if (selected) { <span class="selected-mark" aria-hidden="true">✓</span> }</span>
+                                <span class="branch-address">@b.Address</span>
+                            </button>
+                        </td>
+                        <td class="col-hours"><span class="hours"><span aria-hidden="true">🕒</span> @Time(b.OpenTime) – @Time(b.CloseTime)</span></td>
+                        <td class="col-center col-tables">
+                            <strong>@b.TableCount bàn</strong>
+                            @if (b.ZoneCount > 0) { <span class="muted">@b.ZoneCount khu vực</span> }
+                        </td>
+                        <td class="col-center col-status">
+                            @if (b.IsActive)
+                            {
+                                <span class="badge badge-success"><span class="dot" aria-hidden="true"></span>Đang hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge"><span class="dot" aria-hidden="true"></span>Tạm ngưng</span>
+                            }
+                        </td>
+                        <td class="col-actions">
+                            <div class="row-actions">
+                                <button type="button" class="btn btn-sm" data-action="show-qr" aria-label="Mã QR chi nhánh @b.Name">▦ Mã QR</button>
+                                <button type="button" class="btn btn-sm" data-action="edit-branch" aria-label="Sửa chi nhánh @b.Name">✎ Sửa</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -162,11 +162,6 @@
     setFilter({ q: "", status: "", noRecipe: false });
   }
 
-  // Đóng menu ⋯ của danh mục khi bấm ra ngoài.
-  document.addEventListener("click", function (event) {
-    $all(".row-menu[open]").forEach(function (menu) { if (!menu.contains(event.target)) menu.open = false; });
-  });
-
   // Nút có data-action ở mọi nơi trên trang (đầu trang, trạng thái rỗng, khối cảnh báo, từng dòng món).
   document.addEventListener("click", function (event) {
     var target = event.target.closest("[data-action], [data-page]");
@@ -257,47 +252,10 @@
     });
   }
 
-  // ================================================================ Hộp thoại dùng chung
+  // ================================================================ Hộp thoại dùng chung (wwwroot/js/manage/ui.js)
 
-  $all("dialog.modal").forEach(function (dialog) {
-    dialog.addEventListener("click", function (event) {
-      if (event.target.closest("[data-close]") && !dialog.dataset.busy) dialog.close();
-    });
-    // Không cho đóng bằng Esc khi đang lưu.
-    dialog.addEventListener("cancel", function (event) { if (dialog.dataset.busy) event.preventDefault(); });
-  });
-
-  function setBusy(dialog, busy) {
-    if (busy) dialog.dataset.busy = "true"; else delete dialog.dataset.busy;
-    $all("input, select, textarea, button", dialog).forEach(function (el) {
-      if (!el.matches("[data-submit]")) el.disabled = busy;
-    });
-  }
-
-  var confirmModal = document.getElementById("confirm-modal");
-
-  /** Hộp thoại xác nhận; onConfirm trả Promise – nút Xóa hiện "đang xử lý" tới khi xong. */
-  function confirmAction(options) {
-    $("[data-confirm-title]", confirmModal).textContent = options.title;
-    $("[data-confirm-message]", confirmModal).textContent = options.message;
-    var ok = $("[data-confirm-ok]", confirmModal);
-    ok.textContent = options.okText;
-    ok.onclick = async function () {
-      setBusy(confirmModal, true);
-      Ajax.setLoading(ok, true, "Đang xóa...");
-      try {
-        await options.onConfirm();
-        delete confirmModal.dataset.busy;
-        confirmModal.close();
-      } catch (err) {
-        if (err.status === 400) Ajax.toast(err.message, "error"); // 400 không tự hiện toast
-      } finally {
-        setBusy(confirmModal, false);
-        Ajax.setLoading(ok, false);
-      }
-    };
-    confirmModal.showModal();
-  }
+  var setBusy = ManageUi.setBusy;
+  var confirmAction = ManageUi.confirmAction;
 
   // ================================================================ Thêm / sửa món (A07)
 
@@ -499,6 +457,7 @@
         ? "Món này đã có trong " + orders.toLocaleString("vi-VN") + " hóa đơn. Món sẽ được ẩn khỏi thực đơn và màn hình thu ngân; hóa đơn cũ và báo cáo vẫn giữ nguyên."
         : "Món chưa có trong hóa đơn nào nên sẽ bị xóa hẳn cùng định lượng. Thao tác này không thể hoàn tác.",
       okText: "Xóa món",
+      busyText: "Đang xóa...",
       onConfirm: async function () {
         var result = await Ajax.postJson(URLS.remove(row.dataset.id), {});
         Ajax.toast(result.message, "success");
@@ -571,6 +530,7 @@
       title: "Xóa danh mục " + name + "?",
       message: "Danh mục không còn món nào. Sau khi xóa, danh mục sẽ không hiện trên thực đơn nữa.",
       okText: "Xóa danh mục",
+      busyText: "Đang xóa...",
       onConfirm: async function () {
         var result = await Ajax.postJson(URLS.categoryDelete(row.dataset.categoryRow), {});
         Ajax.toast(result.message, "success");

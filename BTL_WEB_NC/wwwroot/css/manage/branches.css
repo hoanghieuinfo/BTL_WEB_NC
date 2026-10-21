@@ -1,0 +1,203 @@
+/* [AI] Claude hỗ trợ – Phụ lục Z.7 */
+/* MH09 – Chi nhánh và bàn. Mobile-first theo ảnh "MH09 – Chi nhánh & Bàn (Mobile 360px)", mốc 768px và 1280px (ảnh chính). */
+
+/* ---------------------------------------------------------------- Đầu trang, mức dùng gói */
+
+.branches-title { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.branches-action { display: flex; flex-direction: column; gap: 6px; }
+.page-action { width: 100%; }
+.limit-note { font-size: 13px; color: var(--text-2); }
+
+.usage-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px;
+  background: var(--primary-soft); color: var(--primary); font-size: 13px; font-weight: 600;
+}
+.usage-pill.is-full { background: var(--warn-bg); color: var(--warn-text); }
+.usage-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.usage-mini {
+  width: 64px; height: 5px; border: 0; border-radius: 999px; overflow: hidden; appearance: none; background: #DCE7E0;
+}
+.usage-mini::-webkit-progress-bar { background: #DCE7E0; }
+.usage-mini::-webkit-progress-value { background: var(--primary); }
+.usage-mini::-moz-progress-bar { background: var(--primary); }
+
+/* ---------------------------------------------------------------- Danh sách chi nhánh: < 768px là thẻ */
+
+.card + .card { margin-top: 16px; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.card-head .muted { font-size: 13px; }
+
+.branch-table, .branch-table tbody { display: block; width: 100%; }
+.branch-table thead { display: none; }
+.branch-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 12px;
+  padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius);
+}
+.branch-row td { display: block; padding: 0; }
+.branch-row.is-selected { border-color: var(--primary); background: #F2F8F4; }
+.branch-row .col-name { grid-column: 1; }
+.branch-row .col-status { grid-column: 2; grid-row: 1; justify-self: end; }
+.branch-row .col-hours, .branch-row .col-tables { grid-column: 1 / -1; font-size: 13px; color: var(--text-2); }
+.branch-row .col-tables { display: flex; gap: 6px; }
+.branch-row .col-tables strong { font-weight: 500; }
+.branch-row .col-actions { grid-column: 1 / -1; }
+
+.branch-select {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: var(--tap);
+  padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
+}
+.branch-name { font-weight: 700; font-size: 15px; }
+.branch-row.is-selected .branch-name { color: var(--primary); }
+.selected-mark { margin-left: 4px; }
+.branch-address { font-size: 13px; color: var(--text-2); }
+.hours { white-space: nowrap; }
+
+.badge .dot, .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
+.dot-success { background: var(--primary); }
+
+.tip-card { background: var(--card); }
+.tip-title { font-size: 13px; font-weight: 700; color: var(--warn-text); letter-spacing: 0.02em; margin-bottom: 4px; }
+
+/* ---------------------------------------------------------------- Khu vực và bàn */
+
+.zone-head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.zone-head-icon {
+  display: none; width: 36px; height: 36px; border-radius: var(--radius-sm);
+  place-items: center; background: #BFE6CF; color: var(--primary); font-size: 18px;
+}
+.zone-head-text { flex: 1 1 200px; min-width: 0; }
+.zone-branch { font-weight: 400; font-size: 13px; }
+.zone-summary { margin-top: 4px; font-size: 13px; color: var(--text-2); }
+.zone-head .btn-soft { width: 100%; }
+.btn-soft { background: #FBF1EA; border-color: #F1E2D7; }
+
+.zone { padding: 14px 0; border-top: 1px solid var(--border); }
+.zone-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.zone-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.zone-dot-0 { background: var(--primary); }
+.zone-dot-1 { background: #7A4A12; }
+.zone-dot-2 { background: #3D6FB6; }
+.zone-dot-3 { background: #9B4F8F; }
+.zone-title { font-size: 16px; }
+.zone-tools { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.zone-tools .link-btn { padding: 0 8px; }
+.zone-tools [data-action="move-zone"] { display: none; }
+.zone-tools .icon-btn:disabled { color: var(--muted); cursor: default; }
+
+.table-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.table-card {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
+  min-height: 64px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card);
+}
+.table-top, .table-bottom { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.table-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table-seats { font-size: 13px; color: var(--text-2); }
+.table-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--primary); }
+.status-1 .table-dot { background: #D98324; }   /* Đang phục vụ */
+.status-2 .table-dot { background: var(--danger); } /* Chờ thanh toán */
+.table-card .row-menu summary { width: 32px; height: 32px; min-width: 32px; position: relative; }
+.table-card .row-menu summary::after { content: ""; position: absolute; inset: -6px; } /* vùng chạm 44px */
+.table-card.is-hidden { background: #F1ECE8; color: var(--muted); }
+.table-card.is-hidden .table-name { text-decoration: line-through; color: var(--muted); }
+.hidden-tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #E6DFD9; color: var(--text-2); }
+
+.table-add {
+  width: 100%; height: 100%; min-height: 64px; border: 1px dashed #B7D3C3; border-radius: var(--radius-sm);
+  background: var(--primary-soft); color: var(--primary); font-weight: 600; cursor: pointer;
+}
+.table-add:hover { background: #D7E9DE; }
+
+/* ---------------------------------------------------------------- Hộp thoại chi nhánh */
+
+.form-summary { display: flex; flex-direction: column; gap: 2px; }
+.form-summary[hidden] { display: none; }
+.input-prefix { display: flex; align-items: stretch; }
+.input-prefix .prefix {
+  display: flex; align-items: center; padding: 0 10px; border: 1px solid var(--border); border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm); background: #F3EFEB; color: var(--text-2);
+  font-size: 13px; white-space: nowrap; max-width: 55%; overflow: hidden; text-overflow: ellipsis;
+}
+.input-prefix .input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; min-width: 0; }
+
+.status-choice { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.status-choice legend { margin-bottom: 6px; }
+.choice-card {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px; min-height: var(--tap);
+  border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;
+}
+.choice-card:has(input:checked) { border-color: var(--primary); background: #F2F8F4; }
+.choice-card input { margin-top: 3px; accent-color: var(--primary); width: 18px; height: 18px; }
+.choice-title { display: flex; align-items: center; font-weight: 600; }
+.choice-card .field-hint { display: block; }
+
+.usage-preview { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radius); background: #EEF5F0; }
+.usage-preview[hidden] { display: none; }
+.usage-preview strong { color: var(--primary); }
+.usage-preview .usage-mini { width: 100%; }
+
+/* ---------------------------------------------------------------- Hộp thoại QR */
+
+.qr-card {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 20px; border-radius: var(--radius); background: #FBF1EA; text-align: center;
+}
+.qr-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.qr-frame { padding: 12px; border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
+.qr-image { display: block; width: 200px; height: 200px; image-rendering: pixelated; }
+.qr-title { font-size: 18px; font-weight: 700; }
+.qr-caption { font-size: 13px; color: var(--text-2); }
+.qr-link { margin-top: 16px; }
+.copy-field { display: flex; gap: 8px; }
+.copy-field .input { font-family: ui-monospace, Consolas, monospace; font-size: 13px; background: #F6F3F0; }
+.qr-note { margin-top: 12px; font-size: 13px; }
+.qr-foot { flex-wrap: wrap; }
+.qr-foot .btn { text-decoration: none; }
+
+/* In mã QR: chỉ in thẻ QR (window.print() khi body có lớp is-printing-qr) */
+@media print {
+  body.is-printing-qr * { visibility: hidden; }
+  body.is-printing-qr .qr-print-area, body.is-printing-qr .qr-print-area * { visibility: visible; }
+  body.is-printing-qr .qr-print-area { position: fixed; inset: 0; margin: auto; width: 90mm; height: max-content; background: #fff; }
+}
+
+/* ================================================================ ≥ 768px – Tablet: bảng 5 cột, lưới bàn 4 cột */
+
+@media (min-width: 768px) {
+  .branches-head { align-items: flex-start; }
+  .branches-title { flex-direction: row; align-items: center; gap: 14px; }
+  .branches-action { align-items: flex-end; text-align: right; max-width: 340px; }
+  .page-action { width: auto; }
+
+  .branch-table { display: table; border-collapse: collapse; }
+  .branch-table thead { display: table-header-group; }
+  .branch-table tbody { display: table-row-group; }
+  .branch-table th {
+    padding: 12px 16px; font-size: 13px; font-weight: 600; text-align: left; color: var(--text-2); background: #F7EEE8;
+  }
+  .branch-table th:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .branch-table th:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .branch-row { display: table-row; padding: 0; margin: 0; border: 0; }
+  .branch-row td { display: table-cell; padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .branch-row.is-selected td:first-child { box-shadow: inset 4px 0 0 var(--primary); }
+  .branch-row .col-hours, .branch-row .col-tables { font-size: 14px; color: var(--text); }
+  .branch-row .col-tables { display: table-cell; }
+  .branch-row .col-tables .muted { display: block; font-size: 12px; }
+  .col-center, .branch-table th.col-center { text-align: center; }
+  .branch-table th.col-actions { text-align: right; }
+
+  .zone-head-icon { display: grid; }
+  .zone-head .btn-soft { width: auto; }
+  .zone { padding: 16px; margin-top: 12px; border: 0; border-radius: var(--radius); background: #FCF7F4; }
+  .zone-tools [data-action="move-zone"] { display: inline-grid; }
+  .table-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .table-card { min-height: 72px; }
+
+  .copy-field .input { flex: 1; }
+  .qr-foot [data-qr-open] { margin-right: auto; }
+}
+
+/* ================================================================ ≥ 1280px – Máy tính: lưới bàn 5 cột như ảnh chính */
+
+@media (min-width: 1280px) {
+  .table-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

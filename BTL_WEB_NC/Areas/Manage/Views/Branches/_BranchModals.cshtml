@@ -1,0 +1,212 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Hộp thoại của MH09. Lỗi từ server hiện tại [data-error-for] qua Ajax.showErrors. *@
+@model BranchPageModel
+
+@* ------------------------------------------------------------ Thêm / sửa chi nhánh (BM03) *@
+<dialog class="modal modal-lg" id="branch-modal" aria-labelledby="branch-modal-title">
+    <form id="branch-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <span class="modal-icon" aria-hidden="true">⌂</span>
+            <div>
+                <h2 class="modal-title" id="branch-modal-title">Thêm chi nhánh mới</h2>
+                <p class="modal-subtitle">Nhập thông tin cơ sở và đường dẫn thực đơn số của chi nhánh.</p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+
+        <div class="modal-body form">
+            <div class="alert alert-danger form-summary" data-form-summary role="alert" hidden>
+                <strong data-summary-title>Không thể lưu chi nhánh</strong>
+                <span data-summary-text></span>
+            </div>
+
+            <div class="field">
+                <div class="field-label-row">
+                    <label class="field-label" for="branch-name">Tên chi nhánh <span class="required">*</span></label>
+                    <span class="field-hint">Tối đa 100 ký tự</span>
+                </div>
+                <input class="input" id="branch-name" name="name" maxlength="100" required autocomplete="off" />
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="branch-slug">Đường dẫn thực đơn (slug) <span class="required">*</span></label>
+                <div class="input-prefix">
+                    <span class="prefix" aria-hidden="true">/@Model.TenantSlug/thuc-don/</span>
+                    <input class="input" id="branch-slug" name="slug" maxlength="60" required autocomplete="off"
+                           spellcheck="false" aria-describedby="branch-slug-hint" />
+                </div>
+                <span class="field-hint" id="branch-slug-hint">Chữ thường không dấu, chữ số và dấu gạch ngang. Gợi ý tự sinh từ tên.</span>
+                <span class="field-error" data-error-for="slug"></span>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="branch-address">Địa chỉ chi tiết <span class="required">*</span></label>
+                <input class="input" id="branch-address" name="address" maxlength="255" required autocomplete="off" />
+                <span class="field-error" data-error-for="address"></span>
+            </div>
+
+            <div class="field">
+                <div class="field-label-row">
+                    <label class="field-label" for="branch-phone">Số điện thoại bàn / hotline</label>
+                    <span class="field-hint">Không bắt buộc</span>
+                </div>
+                <input class="input" id="branch-phone" name="phone" inputmode="numeric" maxlength="10" autocomplete="off" />
+                <span class="field-error" data-error-for="phone"></span>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label class="field-label" for="branch-open">Giờ mở cửa <span class="required">*</span></label>
+                    <input class="input" id="branch-open" name="openTime" type="time" required />
+                    <span class="field-error" data-error-for="openTime"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="branch-close">Giờ đóng cửa <span class="required">*</span></label>
+                    <input class="input" id="branch-close" name="closeTime" type="time" required />
+                    <span class="field-error" data-error-for="closeTime"></span>
+                </div>
+            </div>
+
+            <fieldset class="field status-choice">
+                <legend class="field-label">Trạng thái hoạt động <span class="required">*</span></legend>
+                <label class="choice-card">
+                    <input type="radio" name="isActive" value="true" checked />
+                    <span><span class="choice-title"><span class="dot dot-success" aria-hidden="true"></span>Đang hoạt động</span>
+                        <span class="field-hint">Khách xem được thực đơn qua mã QR</span></span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="isActive" value="false" />
+                    <span><span class="choice-title"><span class="dot" aria-hidden="true"></span>Tạm ngưng</span>
+                        <span class="field-hint">Ẩn khỏi thực đơn QR</span></span>
+                </label>
+            </fieldset>
+            <p class="field-error" data-error-for=""></p>
+
+            <div class="usage-preview" data-usage-preview>
+                <span>Sau khi lưu, chi nhánh dùng <strong data-preview-text></strong> suất của gói @Model.Usage.PlanName.</span>
+                <progress class="usage-mini" data-preview-bar aria-hidden="true"></progress>
+            </div>
+        </div>
+
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu chi nhánh</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Thêm khu vực / đổi tên *@
+<dialog class="modal" id="zone-modal" aria-labelledby="zone-modal-title">
+    <form id="zone-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <h2 class="modal-title" id="zone-modal-title">Thêm khu vực</h2>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="zone-name">Tên khu vực <span class="required">*</span></label>
+                <input class="input" id="zone-name" name="name" maxlength="50" required autocomplete="off" placeholder="Ví dụ: Tầng 1, Sân vườn" />
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+            <p class="field-error" data-error-for=""></p>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu khu vực</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Thêm / sửa bàn *@
+<dialog class="modal" id="table-modal" aria-labelledby="table-modal-title">
+    <form id="table-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <h2 class="modal-title" id="table-modal-title">Thêm bàn</h2>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="table-zone">Khu vực <span class="required">*</span></label>
+                <select class="select" id="table-zone" name="zoneId" required></select>
+                <span class="field-error" data-error-for="zoneId"></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="table-name">Tên bàn <span class="required">*</span></label>
+                <input class="input" id="table-name" name="name" maxlength="20" required autocomplete="off" />
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="table-seats">Số chỗ ngồi</label>
+                <input class="input" id="table-seats" name="seats" type="number" min="1" max="50" step="1" inputmode="numeric" />
+                <span class="field-error" data-error-for="seats"></span>
+            </div>
+            <label class="switch switch-card">
+                <span class="switch-card-text">
+                    <span class="switch-card-title">Đang dùng</span>
+                    <span class="field-hint">Bàn sẵn sàng xuất hiện trên sơ đồ của thu ngân để phục vụ khách.</span>
+                </span>
+                <input type="checkbox" name="isActive" role="switch" checked />
+                <span class="switch-track" aria-hidden="true"></span>
+            </label>
+            <p class="field-error" data-error-for=""></p>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu bàn</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Mã QR (R16) *@
+<dialog class="modal modal-lg" id="qr-modal" aria-labelledby="qr-modal-title">
+    <div class="modal-head">
+        <span class="modal-icon" aria-hidden="true">▦</span>
+        <div>
+            <h2 class="modal-title" id="qr-modal-title">Mã QR thực đơn</h2>
+            <p class="modal-subtitle" data-qr-subtitle></p>
+        </div>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="qr-card qr-print-area">
+            <p class="qr-eyebrow" data-qr-eyebrow></p>
+            <div class="qr-frame">
+                <img class="qr-image" data-qr-image alt="" width="220" height="220" />
+            </div>
+            <p class="qr-title" data-qr-title></p>
+            <p class="qr-caption">Quét bằng camera điện thoại để xem thực đơn</p>
+        </div>
+
+        <div class="field qr-link">
+            <label class="field-label" for="qr-url">Đường dẫn truy cập trực tiếp</label>
+            <div class="copy-field">
+                <input class="input" id="qr-url" data-qr-url readonly />
+                <button type="button" class="btn btn-sm" data-action="copy-qr-url">Sao chép</button>
+            </div>
+        </div>
+        <p class="alert alert-warn qr-note">
+            In mã này và đặt tại bàn để khách xem thực đơn mới nhất của chi nhánh. Thay đổi giá bán hoặc trạng thái món sẽ tự cập nhật.
+        </p>
+    </div>
+    <div class="modal-foot qr-foot">
+        <a class="btn" data-qr-open target="_blank" rel="noopener">↗ Mở trang thực đơn</a>
+        <button type="button" class="btn" data-action="print-qr">In mã QR</button>
+        <a class="btn btn-primary" data-qr-download>⭳ Tải ảnh PNG</a>
+    </div>
+</dialog>
+
+@* ------------------------------------------------------------ Xác nhận *@
+<dialog class="modal modal-sm modal-confirm" id="confirm-modal" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="modal-head">
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body confirm-body">
+        <h2 class="modal-title" id="confirm-title" data-confirm-title></h2>
+        <p id="confirm-message" data-confirm-message></p>
+    </div>
+    <div class="modal-foot modal-foot-split">
+        <button type="button" class="btn" data-close>Giữ lại</button>
+        <button type="button" class="btn btn-danger-solid" data-confirm-ok>Đồng ý</button>
+    </div>
+</dialog>

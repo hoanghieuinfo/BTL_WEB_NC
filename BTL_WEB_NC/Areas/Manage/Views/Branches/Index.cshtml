@@ -1,0 +1,74 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH09 – Chi nhánh, khu vực, bàn, mã QR (P03, R11, R12, R16). *@
+@model BranchPageModel
+@{
+    ViewData["Title"] = "Chi nhánh và bàn";
+    var usage = Model.Usage;
+    var full = usage.BranchCount >= usage.MaxBranches;
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/branches.css" asp-append-version="true" />
+}
+
+<div class="page-head branches-head">
+    <div class="branches-title">
+        <h1 class="page-title">Chi nhánh và bàn</h1>
+        <span class="usage-pill @(full ? "is-full" : "")" data-usage-pill>
+            <span class="usage-dot" aria-hidden="true"></span>
+            <span><span data-usage-count>@usage.BranchCount</span>/<span data-usage-max>@usage.MaxBranches</span> chi nhánh của gói</span>
+            <progress class="usage-mini" max="@usage.MaxBranches" value="@usage.BranchCount" aria-hidden="true" data-usage-bar></progress>
+        </span>
+    </div>
+    <div class="branches-action">
+        <button type="button" class="btn btn-primary page-action" data-action="add-branch" disabled="@full"
+                aria-describedby="branch-limit-note">
+            <span aria-hidden="true">+</span> Thêm chi nhánh
+        </button>
+        <p class="limit-note" id="branch-limit-note" data-limit-note hidden="@(!full)">
+            Đã dùng hết <span data-usage-count>@usage.BranchCount</span>/<span data-usage-max>@usage.MaxBranches</span> chi nhánh của gói @usage.PlanName.
+            Nâng cấp gói để thêm chi nhánh.
+        </p>
+    </div>
+</div>
+
+<section class="card branch-card" aria-labelledby="branch-list-heading">
+    <div class="card-head">
+        <div>
+            <h2 class="section-title" id="branch-list-heading">Danh sách chi nhánh</h2>
+            <p class="muted">Chọn chi nhánh để thiết lập sơ đồ chỗ ngồi</p>
+        </div>
+        <span class="badge" data-branch-total>@Model.List.Branches.Count địa điểm</span>
+    </div>
+    <div data-branch-list aria-live="polite">
+        <partial name="_BranchList" model="Model.List" />
+    </div>
+</section>
+
+<section class="card tip-card">
+    <h2 class="tip-title">Mẹo vận hành</h2>
+    <p>In mã QR và đặt tại bàn để khách xem thực đơn mới nhất của chi nhánh. Khách vẫn gọi món với nhân viên.</p>
+</section>
+
+<section class="card zone-card" aria-label="Khu vực và bàn" data-zone-board aria-live="polite">
+    @if (Model.Board is not null)
+    {
+        <partial name="_ZoneBoard" model="Model.Board" />
+    }
+    else
+    {
+        <div class="state">
+            <p class="state-title">Chưa có chi nhánh</p>
+            <p>Thêm chi nhánh đầu tiên để thiết lập khu vực và bàn.</p>
+        </div>
+    }
+</section>
+
+<template id="board-loading-template">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải khu vực và bàn...</span></div>
+</template>
+
+<partial name="_BranchModals" model="Model" />
+
+@section Scripts {
+    <script src="~/js/manage/branches.js" asp-append-version="true"></script>
+}

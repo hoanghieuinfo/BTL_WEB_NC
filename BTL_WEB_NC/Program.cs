@@ -37,6 +37,8 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IPlanUsageService, PlanUsageService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IBranchQrService, BranchQrService>();
 builder.Services.AddSingleton<IImageUploadService>(sp =>
     new ImageUploadService(sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 

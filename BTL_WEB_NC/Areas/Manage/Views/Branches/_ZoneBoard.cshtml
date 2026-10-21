@@ -1,0 +1,92 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Khu vực và bàn của chi nhánh đang chọn (Partial View). *@
+@model ZoneBoardModel
+@{
+    string StatusText(BTL_WEB_NC.Models.Entities.TableStatus s) => s switch
+    {
+        BTL_WEB_NC.Models.Entities.TableStatus.Serving => "Đang phục vụ",
+        BTL_WEB_NC.Models.Entities.TableStatus.AwaitingPayment => "Chờ thanh toán",
+        _ => "Trống"
+    };
+    var summary = string.Join(" • ", Model.Zones.Select(z => $"{z.ActiveTableCount} ở {z.Name}"));
+}
+<div data-board-meta data-branch-id="@Model.BranchId" data-branch-name="@Model.BranchName">
+    <div class="zone-head">
+        <span class="zone-head-icon" aria-hidden="true">⌂</span>
+        <div class="zone-head-text">
+            <h2 class="section-title">Khu vực và bàn <span class="muted zone-branch">– Chi nhánh @Model.BranchName</span></h2>
+            <p class="zone-summary">
+                Tổng cộng @Model.ActiveTableCount bàn đang dùng@(summary.Length > 0 ? " • " + summary : "")
+            </p>
+        </div>
+        <button type="button" class="btn btn-soft" data-action="add-zone"><span aria-hidden="true">+</span> Thêm khu vực</button>
+    </div>
+
+    @if (Model.Zones.Count == 0)
+    {
+        <div class="state">
+            <p class="state-title">Chi nhánh chưa có khu vực</p>
+            <p>Tạo khu vực (ví dụ Tầng 1, Sân vườn) rồi thêm bàn vào từng khu vực.</p>
+        </div>
+    }
+
+    @for (var i = 0; i < Model.Zones.Count; i++)
+    {
+        var zone = Model.Zones[i];
+        <section class="zone" data-zone-id="@zone.Id" data-zone-name="@zone.Name" data-zone-count="@zone.Tables.Count"
+                 aria-labelledby="zone-title-@zone.Id">
+            <div class="zone-bar">
+                <span class="zone-dot zone-dot-@(i % 4)" aria-hidden="true"></span>
+                <h3 class="zone-title" id="zone-title-@zone.Id">@zone.Name</h3>
+                <span class="badge">@zone.Tables.Count bàn</span>
+                <div class="zone-tools">
+                    <button type="button" class="link-btn" data-action="rename-zone">Đổi tên</button>
+                    <button type="button" class="icon-btn" data-action="move-zone" data-direction="up" disabled="@(i == 0)"
+                            aria-label="Đưa @zone.Name lên trên">↑</button>
+                    <button type="button" class="icon-btn" data-action="move-zone" data-direction="down" disabled="@(i == Model.Zones.Count - 1)"
+                            aria-label="Đưa @zone.Name xuống dưới">↓</button>
+                </div>
+            </div>
+
+            <ul class="table-grid">
+                @foreach (var t in zone.Tables)
+                {
+                    <li class="table-card @(t.IsActive ? "" : "is-hidden") status-@((int)t.Status)"
+                        data-table-id="@t.Id" data-name="@t.Name" data-seats="@t.Seats" data-active="@(t.IsActive ? "true" : "false")">
+                        <div class="table-top">
+                            <span class="table-name">@t.Name</span>
+                            @if (t.IsActive)
+                            {
+                                <span class="table-dot" title="@StatusText(t.Status)"><span class="visually-hidden">@StatusText(t.Status)</span></span>
+                            }
+                            else
+                            {
+                                <span class="hidden-tag">Ẩn</span>
+                            }
+                        </div>
+                        <div class="table-bottom">
+                            <span class="table-seats">@(t.Seats.HasValue ? $"{t.Seats} chỗ" : "– chỗ")</span>
+                            <details class="row-menu">
+                                <summary class="icon-btn" aria-label="Tùy chọn @t.Name">⋮</summary>
+                                <div class="row-menu-list">
+                                    <button type="button" class="menu-item" data-action="edit-table">Sửa bàn</button>
+                                    @if (t.IsActive)
+                                    {
+                                        <button type="button" class="menu-item menu-item-danger" data-action="hide-table">Ẩn bàn</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="menu-item" data-action="show-table">Hiện bàn</button>
+                                    }
+                                </div>
+                            </details>
+                        </div>
+                    </li>
+                }
+                <li class="table-add-cell">
+                    <button type="button" class="table-add" data-action="add-table"><span aria-hidden="true">⊕</span> Thêm bàn</button>
+                </li>
+            </ul>
+        </section>
+    }
+</div>
