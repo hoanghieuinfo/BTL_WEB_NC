@@ -15,8 +15,8 @@
         };
     }
 }
-<div data-list-meta data-page="@Model.Page" data-total-label="@totalLabel"
-     data-total-value="@InventoryText.Money(Model.PeriodTotal)" data-total-count="@Model.TotalCount phiếu">
+<div data-list-meta data-page="@Model.Page" data-meta-total-label="@totalLabel"
+     data-meta-total-value="@InventoryText.Money(Model.PeriodTotal)" data-meta-total-count="@Model.TotalCount phiếu">
 @if (Model.TotalCount == 0)
 {
     <div class="state">

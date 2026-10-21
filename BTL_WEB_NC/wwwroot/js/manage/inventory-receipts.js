@@ -56,9 +56,9 @@
       var meta = $("[data-list-meta]", listEl);
       if (meta) {
         state.page = parseInt(meta.dataset.page, 10) || 1;
-        $("[data-total-label]").textContent = meta.dataset.totalLabel;
-        $("[data-total-value]").textContent = meta.dataset.totalValue;
-        $("[data-total-count]").textContent = meta.dataset.totalCount;
+        $("[data-total-label]").textContent = meta.dataset.metaTotalLabel;
+        $("[data-total-value]").textContent = meta.dataset.metaTotalValue;
+        $("[data-total-count]").textContent = meta.dataset.metaTotalCount;
       }
       writeUrl();
     } catch (err) {
