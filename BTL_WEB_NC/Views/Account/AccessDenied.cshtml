@@ -1,0 +1,12 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* TẠM: thay bằng bản của Module 1 khi gộp repo *@
+@{
+    ViewData["Title"] = "Không có quyền";
+    Layout = "_AuthLayout";
+}
+
+<h1 class="auth-title">Không có quyền truy cập</h1>
+<p class="muted">Tài khoản của bạn không được phép mở trang này.</p>
+<form method="post" asp-area="" asp-controller="Account" asp-action="Logout">
+    <button type="submit" class="btn btn-block">Đăng nhập bằng tài khoản khác</button>
+</form>

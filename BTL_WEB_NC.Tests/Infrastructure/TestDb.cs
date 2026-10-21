@@ -19,7 +19,8 @@ public sealed class TestDb : IDisposable
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<AppDbContext> _options;
 
-    public TestDb()
+    /// <param name="seedTenants">false → CSDL trống hoàn toàn (dùng cho test SeedData).</param>
+    public TestDb(bool seedTenants = true)
     {
         _connection = new SqliteConnection("DataSource=:memory:");
         _connection.Open();
@@ -27,6 +28,10 @@ public sealed class TestDb : IDisposable
 
         using var db = CreateContext(tenantId: null);
         db.Database.EnsureCreated();
+        if (!seedTenants)
+        {
+            return;
+        }
 
         // Seed không có tenant (giống SeedData/đăng ký UC01): Tenants không phải ITenantEntity.
         var plan = new ServicePlan { Name = "Cơ bản", MaxBranches = 1, MaxStaff = 5, PricePerMonth = 0 };
@@ -44,8 +49,9 @@ public sealed class TestDb : IDisposable
 }
 
 /// <summary>
-/// Chỉ dùng trong test: SQLite không tự sinh rowversion như SQL Server, nên gán giá trị mặc định
-/// để INSERT Orders/BranchStocks không lỗi NOT NULL. Mọi cấu hình khác giữ nguyên của AppDbContext.
+/// Chỉ dùng trong test, bù hai chỗ SQLite khác SQL Server; mọi cấu hình khác giữ nguyên của AppDbContext:
+/// - SQLite không tự sinh rowversion → gán giá trị mặc định để INSERT Orders/BranchStocks không lỗi NOT NULL.
+/// - SQLite lưu decimal dạng TEXT nên CHECK "[Discount] = 0" và phép so sánh/cộng tiền sai → lưu decimal dạng REAL.
 /// </summary>
 internal sealed class TestAppDbContext : AppDbContext
 {
@@ -58,5 +64,12 @@ internal sealed class TestAppDbContext : AppDbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Order>().Property(x => x.RowVersion).HasDefaultValueSql("randomblob(8)");
         modelBuilder.Entity<BranchStock>().Property(x => x.RowVersion).HasDefaultValueSql("randomblob(8)");
+
+        foreach (var property in modelBuilder.Model.GetEntityTypes()
+                     .SelectMany(t => t.GetProperties())
+                     .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
+        {
+            property.SetProviderClrType(typeof(double));
+        }
     }
 }

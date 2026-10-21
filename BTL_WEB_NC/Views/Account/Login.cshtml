@@ -1,0 +1,28 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* TẠM: thay bằng bản của Module 1 khi gộp repo *@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "_AuthLayout";
+}
+
+<h1 class="auth-title">Đăng nhập</h1>
+<p class="muted">Quản lý quán cafe</p>
+
+<form method="post" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="form" novalidate>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <div class="field">
+        <label asp-for="Email" class="field-label"></label>
+        <input asp-for="Email" class="input" autocomplete="username" autofocus />
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="Password" class="field-label"></label>
+        <input asp-for="Password" class="input" autocomplete="current-password" />
+        <span asp-validation-for="Password" class="field-error"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+</form>

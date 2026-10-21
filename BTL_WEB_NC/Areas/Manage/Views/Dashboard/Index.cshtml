@@ -1,0 +1,16 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@{
+    ViewData["Title"] = "Tổng quan";
+    var fullName = User.FindFirst(TenantClaimTypes.FullName)?.Value ?? "";
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Xin chào, @fullName</h1>
+        <p class="page-subtitle">Trang tổng quan sẽ được hoàn thiện ở Bước 6 (MH08).</p>
+    </div>
+</div>
+
+<section class="card">
+    <p>Bạn đã đăng nhập với vai trò Chủ quán. Chọn một mục ở menu bên để bắt đầu quản trị quán.</p>
+</section>

@@ -22,7 +22,7 @@
 ## 2. Môi trường
 
 - Hệ điều hành: Windows, VS Code, terminal PowerShell.
-- SQL Server LocalDB, connection string trong `BTL_WEB_NC/appsettings.json`:
+- SQL Server (máy của Hiếu: instance `DESKTOP-LNNSOIN`), connection string trong `BTL_WEB_NC/appsettings.json`:
   `Server=DESKTOP-LNNSOIN;Database=WNC_CafeSaaS;Trusted_Connection=True;TrustServerCertificate=True`
 - .NET 8 SDK, công cụ `dotnet-ef` (`dotnet tool install --global dotnet-ef`).
 - Không ghi mật khẩu thật vào `appsettings.json`.
@@ -94,6 +94,10 @@ comment `TẠM: thay bằng bản của Module 1 khi gộp repo`. Khi gộp, ch�
 ### Giới hạn gói (R11, R17)
 
 Trước khi thêm chi nhánh/nhân viên, đếm bản ghi hiện có so với `MaxBranches`/`MaxStaff` của gói.
+
+- Chi nhánh: đếm mọi chi nhánh của tenant, kể cả chi nhánh đang tạm ngưng.
+- Nhân viên: chỉ đếm tài khoản vai trò Staff đang làm (IsActive = true); nhân viên đã nghỉ (bị khóa) không chiếm suất.
+- Mở khóa lại một nhân viên cũng phải kiểm tra giới hạn như khi thêm mới.
 
 ### AJAX (mục 3.2.6, Bảng 3.21)
 
@@ -177,12 +181,18 @@ Test bắt buộc:
 
 ## 9. Giao tiếp với module khác
 
-- **Với Trung (Module 3):** Việc 12 cung cấp
-  `Task DeductForOrderAsync(long orderId, CancellationToken ct = default)` trong `IInventoryDeductionService`.
-  Service **không tự mở transaction**; Trung gọi nó bên trong transaction của action A16 (`POST /pos/orders/{id}/pay`).
-  Phải thống nhất chữ ký này với Trung trước khi code.
-- **Với Đạt (Module 1):** Area `Manage` chỉ dùng `TenantContext` (TenantId, BranchId, Role) và vai trò `TenantAdmin`.
-  Không phụ thuộc chi tiết nào khác của Module 1.
+- **Với Trung (Module 3):**
+  - Việc 12 cung cấp `Task DeductForOrderAsync(long orderId, CancellationToken ct = default)` trong `IInventoryDeductionService`.
+    Service **không tự mở transaction**; Trung gọi nó bên trong transaction của action A16 (`POST /pos/orders/{id}/pay`).
+    Phải thống nhất chữ ký này với Trung trước khi code.
+  - Mọi thời điểm (`CreatedAt`, `PaidAt`, `UpdatedAt`…) lưu theo **giờ Việt Nam** bằng `VietnamTime.Now`
+    (`BTL_WEB_NC/Infrastructure/VietnamTime.cs`), không dùng `DateTime.UtcNow`. Trung phải dùng hàm này khi ghi `PaidAt` ở A16,
+    nếu không báo cáo doanh thu theo ngày (MH08, MH13) sẽ lệch.
+- **Với Đạt (Module 1):**
+  - Area `Manage` chỉ dùng `TenantContext` (TenantId, BranchId, Role) và vai trò `TenantAdmin`.
+    Không phụ thuộc chi tiết nào khác của Module 1.
+  - Các phần khung tạm chưa làm, thuộc Module 1: rate limiting cho đăng nhập, header CSP, bắt buộc đổi mật khẩu khi `MustChangePassword`.
+    Nhắc Đạt khi gộp repo.
 
 ## 10. Cách làm việc
 

@@ -1,0 +1,26 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@model PlanUsage
+@{
+    static int Percent(int used, int max) => max <= 0 ? 0 : Math.Min(100, used * 100 / max);
+}
+
+<div class="plan-usage">
+    <div class="usage-row">
+        <div class="usage-label">
+            <span>Chi nhánh đã dùng</span>
+            <span class="usage-value">@Model.BranchCount/@Model.MaxBranches</span>
+        </div>
+        <progress class="usage-bar @(Model.BranchCount >= Model.MaxBranches ? "is-full" : "")"
+                  max="@Model.MaxBranches" value="@Model.BranchCount"
+                  aria-label="Chi nhánh đã dùng @Model.BranchCount trên @Model.MaxBranches">@Percent(Model.BranchCount, Model.MaxBranches)%</progress>
+    </div>
+    <div class="usage-row">
+        <div class="usage-label">
+            <span>Nhân viên đã dùng</span>
+            <span class="usage-value">@Model.StaffCount/@Model.MaxStaff</span>
+        </div>
+        <progress class="usage-bar @(Model.StaffCount >= Model.MaxStaff ? "is-full" : "")"
+                  max="@Model.MaxStaff" value="@Model.StaffCount"
+                  aria-label="Nhân viên đã dùng @Model.StaffCount trên @Model.MaxStaff">@Percent(Model.StaffCount, Model.MaxStaff)%</progress>
+    </div>
+</div>

@@ -1,0 +1,119 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@inject IPlanUsageService PlanUsageService
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var usage = await PlanUsageService.GetAsync(Context.RequestAborted);
+    var title = ViewData["Title"] as string ?? "Quản trị";
+    var fullName = User.FindFirst(TenantClaimTypes.FullName)?.Value ?? "";
+    var nameParts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = nameParts.Length switch
+    {
+        0 => "?",
+        1 => nameParts[0][..1],
+        _ => string.Concat(nameParts[0][..1], nameParts[^1][..1])
+    };
+    var tenantInitial = usage.TenantName.Length > 0 ? usage.TenantName[..1] : "?";
+    var currentController = ViewContext.RouteData.Values["controller"] as string;
+
+    var nav = new[]
+    {
+        (Controller: "Dashboard", Href: "/manage", Text: "Tổng quan", Icon: "dashboard"),
+        (Controller: "Branches", Href: "/manage/branches", Text: "Chi nhánh và bàn", Icon: "store"),
+        (Controller: "Products", Href: "/manage/products", Text: "Thực đơn", Icon: "menu"),
+        (Controller: "Staff", Href: "/manage/staff", Text: "Nhân viên", Icon: "staff"),
+        (Controller: "Inventory", Href: "/manage/inventory", Text: "Kho nguyên liệu", Icon: "box"),
+        (Controller: "Reports", Href: "/manage/reports", Text: "Báo cáo", Icon: "chart"),
+    };
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <title>@title – @usage.TenantName</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="manage">
+    <a class="skip-link" href="#main">Bỏ qua menu</a>
+
+    <aside class="sidebar" id="sidebar" aria-label="Menu quản trị">
+        <div class="sidebar-brand">
+            <span class="brand-logo" aria-hidden="true">@tenantInitial</span>
+            <div class="brand-text">
+                <span class="brand-name">@usage.TenantName</span>
+                <span class="brand-sub">Quản trị chuỗi F&amp;B</span>
+            </div>
+            <span class="plan-badge">Gói @usage.PlanName</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            @foreach (var item in nav)
+            {
+                var active = string.Equals(item.Controller, currentController, StringComparison.OrdinalIgnoreCase);
+                <a href="@item.Href" class="nav-link @(active ? "is-active" : "")" aria-current="@(active ? "page" : null)">
+                    <partial name="_Icon" model="item.Icon" />
+                    <span>@item.Text</span>
+                </a>
+            }
+        </nav>
+
+        <partial name="_PlanUsage" model="usage" />
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close hidden></div>
+
+    <div class="shell">
+        <header class="topbar">
+            <button type="button" class="icon-btn topbar-menu" aria-controls="sidebar" aria-expanded="false"
+                    aria-label="Mở menu" data-sidebar-toggle>
+                <partial name="_Icon" model="@("hamburger")" />
+            </button>
+
+            <div class="topbar-brand">
+                <span class="brand-logo" aria-hidden="true">@tenantInitial</span>
+                <div class="brand-text">
+                    <span class="brand-name">@usage.TenantName</span>
+                    <span class="brand-sub">Gói @usage.PlanName</span>
+                </div>
+            </div>
+
+            <nav class="breadcrumb breadcrumb-top" aria-label="Đường dẫn">
+                <span>@usage.TenantName</span><span class="breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">@title</span>
+            </nav>
+
+            <details class="user-menu">
+                <summary aria-label="Tài khoản">
+                    <span class="user-text">
+                        <span class="user-name">@fullName</span>
+                        <span class="user-role">Chủ quán</span>
+                    </span>
+                    <span class="avatar" aria-hidden="true">@initials</span>
+                </summary>
+                <div class="user-dropdown">
+                    <form method="post" asp-area="" asp-controller="Account" asp-action="Logout">
+                        <button type="submit" class="menu-item">Đăng xuất</button>
+                    </form>
+                </div>
+            </details>
+        </header>
+
+        <main class="content" id="main">
+            <nav class="breadcrumb breadcrumb-inline" aria-label="Đường dẫn">
+                <span>@usage.TenantName</span><span class="breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">@title</span>
+            </nav>
+            @RenderBody()
+        </main>
+    </div>
+
+    <div class="toast-region" id="toast-region" role="status" aria-live="polite"></div>
+
+    <script src="~/js/ajax.js" asp-append-version="true"></script>
+    <script src="~/js/manage/layout.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
