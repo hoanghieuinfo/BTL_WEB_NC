@@ -1,0 +1,104 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH10 – Thực đơn & định lượng (UC10). Danh sách món tải bằng AJAX (A06) vào [data-product-list]. *@
+@model MenuSummary
+@{
+    ViewData["Title"] = "Thực đơn";
+    var hasCategories = Model.Categories.Count > 0;
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/products.css" asp-append-version="true" />
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Thực đơn</h1>
+        <p class="page-subtitle">
+            <span data-summary="total">@Model.TotalProducts</span> món trong
+            <span data-summary="categoryCount">@Model.CategoryCount</span> danh mục
+        </p>
+    </div>
+    <button type="button" class="btn btn-primary page-action" data-action="add-product"
+            disabled="@(!hasCategories)" title="@(hasCategories ? null : "Hãy tạo danh mục trước khi thêm món")">
+        <span aria-hidden="true">+</span> Thêm món
+    </button>
+</div>
+
+<div class="menu-layout">
+    <div class="menu-side">
+        <section class="card category-panel" aria-labelledby="category-heading">
+            <div class="category-head">
+                <h2 id="category-heading" class="section-title">Danh mục</h2>
+                <span class="muted"><span data-summary="categoryCount">@Model.CategoryCount</span> nhóm</span>
+                <button type="button" class="btn btn-sm category-add" data-action="add-category">
+                    <span aria-hidden="true">+</span> Thêm danh mục
+                </button>
+            </div>
+
+            <ul class="category-list" data-category-list>
+                <li class="category-row">
+                    <button type="button" class="category-item is-active" data-category-id="" aria-pressed="true">
+                        <span class="category-name">Tất cả</span>
+                        <span class="category-count"><span data-summary="total">@Model.TotalProducts</span> món</span>
+                    </button>
+                </li>
+                @foreach (var category in Model.Categories)
+                {
+                    <partial name="_CategoryRow" model="category" />
+                }
+            </ul>
+            @if (!hasCategories)
+            {
+                <p class="category-empty muted" data-category-empty>Chưa có danh mục. Tạo danh mục đầu tiên để bắt đầu thêm món.</p>
+            }
+
+            @* Mẫu dòng danh mục cho JS nhân bản sau khi thêm/sửa/xóa (điền dữ liệu bằng textContent). *@
+            <template id="category-row-template">
+                <partial name="_CategoryRow" model="new CategorySummary(0, string.Empty, 0, 0)" />
+            </template>
+        </section>
+
+        <section class="card recipe-warning" data-recipe-warning hidden="@(Model.MissingRecipeCount == 0)" aria-live="polite">
+            <h2 class="recipe-warning-title"><span aria-hidden="true">⚠</span> Cảnh báo trừ kho</h2>
+            <p>
+                Có <strong><span data-summary="missing">@Model.MissingRecipeCount</span> món</strong> chưa thiết lập định lượng nguyên liệu.
+                Món chưa có định lượng sẽ không trừ kho khi thanh toán.
+            </p>
+            <button type="button" class="link-btn" data-action="show-missing">Xem món thiếu định lượng →</button>
+        </section>
+    </div>
+
+    <section class="menu-main" aria-label="Danh sách món">
+        <form class="card filter-bar" data-filter-form role="search" onsubmit="return false">
+            <label class="search-field">
+                <span class="visually-hidden">Tìm món theo tên</span>
+                <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+                <input type="search" class="input" name="q" placeholder="Tìm món theo tên..." maxlength="100" autocomplete="off" />
+            </label>
+            <label class="filter-status">
+                <span class="filter-label">Trạng thái:</span>
+                <select class="select" name="status">
+                    <option value="">Mọi trạng thái</option>
+                    <option value="selling">Đang bán</option>
+                    <option value="stopped">Ngừng bán</option>
+                </select>
+            </label>
+            <label class="switch filter-switch">
+                <input type="checkbox" name="noRecipe" role="switch" />
+                <span class="switch-track" aria-hidden="true"></span>
+                <span class="switch-text">Món chưa có định lượng</span>
+            </label>
+        </form>
+
+        <div class="card product-panel" data-product-list aria-live="polite" aria-busy="true">
+            <partial name="_ProductListLoading" />
+        </div>
+    </section>
+</div>
+
+<template id="product-loading-template"><partial name="_ProductListLoading" /></template>
+
+<partial name="_ProductModals" model="Model" />
+
+@section Scripts {
+    <script src="~/js/manage/products.js" asp-append-version="true"></script>
+}

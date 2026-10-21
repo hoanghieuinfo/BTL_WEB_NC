@@ -2,6 +2,7 @@
 using BTL_WEB_NC.Areas.Manage.Services;
 using BTL_WEB_NC.Data;
 using BTL_WEB_NC.Infrastructure.Ajax;
+using BTL_WEB_NC.Infrastructure.Files;
 using BTL_WEB_NC.Infrastructure.Tenancy;
 using BTL_WEB_NC.Models.Entities;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -34,6 +35,10 @@ builder.Services.AddMemoryCache();
 
 // Service của Area Manage (Module 2).
 builder.Services.AddScoped<IPlanUsageService, PlanUsageService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddSingleton<IImageUploadService>(sp =>
+    new ImageUploadService(sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 
 // Identity – chính sách theo Bảng 3.22 (R36).
 builder.Services
@@ -92,7 +97,17 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    // Ảnh do người dùng tải lên: cấm trình duyệt đoán kiểu nội dung (Bảng 3.22 – tải lên file độc hại).
+    OnPrepareResponse = ctx =>
+    {
+        if (ctx.Context.Request.Path.StartsWithSegments("/uploads"))
+        {
+            ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        }
+    }
+});
 app.UseRouting();
 
 app.UseAuthentication();

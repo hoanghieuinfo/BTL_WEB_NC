@@ -1,0 +1,18 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Trạng thái đang tải của A06 – theo ảnh "MH10 – Đang tải". *@
+<div class="list-loading" role="status">
+    <p class="list-loading-text"><span class="spinner spinner-sm" aria-hidden="true"></span> Đang tải dữ liệu thực đơn...</p>
+    <div class="product-table-head" aria-hidden="true">
+        <span>Món ăn &amp; định lượng</span><span>Giá bán</span><span>Trạng thái</span><span>Thao tác</span>
+    </div>
+    @for (var i = 0; i < 6; i++)
+    {
+        <div class="skeleton-row" aria-hidden="true">
+            <span class="skeleton skeleton-thumb"></span>
+            <span class="skeleton-lines"><span class="skeleton skeleton-title"></span><span class="skeleton skeleton-sub"></span></span>
+            <span class="skeleton skeleton-price"></span>
+            <span class="skeleton skeleton-pill"></span>
+            <span class="skeleton-actions"><span class="skeleton skeleton-btn"></span><span class="skeleton skeleton-btn"></span></span>
+        </div>
+    }
+</div>

@@ -313,6 +313,103 @@ body.is-sidebar-open .sidebar { transform: none; box-shadow: var(--shadow-lg); }
 .toast-warn { border-left: 4px solid var(--warn-text); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+/* ---------------------------------------------------------------- Thành phần dùng chung bổ sung (Bước 2) */
+
+.section-title { font-size: 16px; }
+
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.btn-icon { width: 36px; padding: 0; }
+.btn-dashed { border-style: dashed; background: var(--warn-bg); color: var(--primary); border-color: var(--warn-border); }
+.btn-danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-danger-solid:hover { background: #A93226; border-color: #A93226; }
+/* Vùng chạm vẫn đủ 44px dù nút nhìn nhỏ (R34) */
+.btn-sm, .page-btn { position: relative; }
+.btn-sm::after, .page-btn::after { content: ""; position: absolute; inset: -4px; }
+
+.link-btn {
+  min-height: var(--tap); padding: 0; border: 0; background: none;
+  color: var(--primary); font-weight: 600; cursor: pointer; text-align: left;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.menu-item-danger { color: var(--danger); }
+
+.field-label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.field-error-box:not(:empty) {
+  padding: 10px 12px; border-radius: var(--radius-sm); background: var(--danger-soft);
+}
+
+.input-affix { position: relative; }
+.input-affix .input { padding-right: 36px; text-align: right; font-weight: 600; }
+.input-affix .affix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-2); }
+
+/* Công tắc bật/tắt: <label class="switch"><input type=checkbox role=switch><span class=switch-track>… */
+.switch { display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap); cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch-track {
+  position: relative; flex: none; width: 44px; height: 26px; border-radius: 999px;
+  background: #D9D5D1; transition: background 0.15s;
+}
+.switch-track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); transition: transform 0.15s;
+}
+.switch input:checked + .switch-track { background: var(--primary); }
+.switch input:checked + .switch-track::after { transform: translateX(18px); }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--primary); outline-offset: 2px; }
+.switch input:disabled + .switch-track { opacity: 0.6; }
+.switch-text { color: var(--text-2); }
+.switch input:checked ~ .switch-text { color: var(--primary); font-weight: 500; }
+
+.switch-card {
+  display: flex; justify-content: space-between; width: 100%; padding: 12px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.switch-card-text { display: flex; flex-direction: column; }
+.switch-card-title { font-weight: 600; }
+
+/* Menu ⋯ dùng <details> */
+.row-menu { position: relative; }
+.row-menu summary { list-style: none; color: var(--text-2); }
+.row-menu summary::-webkit-details-marker { display: none; }
+.row-menu-list {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 10; min-width: 170px; padding: 6px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg);
+}
+
+/* Phân trang */
+.pagination {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 14px 16px; border-top: 1px solid var(--border);
+}
+.pagination-info { color: var(--text-2); }
+.pagination-pages { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.page-btn {
+  min-width: 36px; height: 36px; padding: 0 10px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card);
+  font-weight: 600; cursor: pointer;
+}
+.page-btn.is-current { background: var(--primary); border-color: var(--primary); color: #fff; }
+.page-btn:disabled { color: var(--muted); cursor: not-allowed; }
+.page-gap { align-self: center; color: var(--muted); }
+
+.spinner-sm { width: 16px; height: 16px; border-width: 2px; display: inline-block; vertical-align: -3px; }
+
+/* Hộp thoại: cỡ, phần đầu có biểu tượng */
+.modal-lg { width: min(600px, calc(100vw - 32px)); }
+.modal-sm { width: min(440px, calc(100vw - 32px)); }
+.modal-form { display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+.modal-form .modal-body { overflow-y: auto; }
+.modal-head { align-items: flex-start; }
+.modal-head .modal-close { margin-left: auto; margin-top: -8px; margin-right: -8px; }
+.modal-icon {
+  flex: none; width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); font-weight: 700;
+}
+.modal-subtitle { margin-top: 2px; color: var(--text-2); font-size: 13px; }
+.modal-status { margin-right: auto; align-self: center; color: var(--text-2); font-size: 13px; }
+.modal-foot { border-top: 1px solid var(--border); padding-top: 14px; background: #FBF8F5; }
+
 /* ---------------------------------------------------------------- Trang đăng nhập [TẠM – Module 1] */
 
 .auth-page { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
@@ -334,6 +431,7 @@ body.is-sidebar-open .sidebar { transform: none; box-shadow: var(--shadow-lg); }
   .page-title { font-size: 26px; }
   .card { padding: 20px 24px; }
   .modal-foot { flex-direction: row; justify-content: flex-end; }
+  .pagination { flex-direction: row; justify-content: space-between; }
   .toast-region { left: auto; width: 360px; right: 24px; bottom: 24px; }
 }
 

@@ -1,0 +1,192 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Các hộp thoại của MH10 (thẻ <dialog>). Lỗi từ server hiện tại phần tử [data-error-for] qua Ajax.showErrors. *@
+@model MenuSummary
+
+@* ------------------------------------------------------------ Thêm / sửa món (BM04a) *@
+<dialog class="modal modal-lg" id="product-modal" aria-labelledby="product-modal-title">
+    <form id="product-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <span class="modal-icon" data-modal-icon aria-hidden="true">+</span>
+            <div>
+                <h2 class="modal-title" id="product-modal-title">Thêm món mới</h2>
+                <p class="modal-subtitle" data-modal-subtitle>Khai báo thông tin món bán. Định lượng nguyên liệu khai báo sau ở nút "Định lượng".</p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+
+        <div class="modal-body form">
+            <div class="form-grid">
+                <div class="field">
+                    <label class="field-label" for="product-category">Danh mục <span class="required">*</span></label>
+                    <select class="select" id="product-category" name="categoryId" required data-category-select>
+                        <option value="">Chọn danh mục</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </select>
+                    <span class="field-error" data-error-for="categoryId"></span>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="product-name">Tên món <span class="required">*</span></label>
+                    <input class="input" id="product-name" name="name" maxlength="100" required autocomplete="off" />
+                    <span class="field-error" data-error-for="name"></span>
+                </div>
+            </div>
+
+            <div class="field field-price">
+                <label class="field-label" for="product-price">Giá bán <span class="required">*</span></label>
+                <div class="input-affix">
+                    <input class="input" id="product-price" name="price" inputmode="numeric" required autocomplete="off" placeholder="0" />
+                    <span class="affix" aria-hidden="true">đ</span>
+                </div>
+                <span class="field-error" data-error-for="price"></span>
+            </div>
+
+            <div class="field">
+                <div class="field-label-row">
+                    <span class="field-label" id="product-image-label">Ảnh món</span>
+                    <span class="field-hint">JPG, PNG hoặc WEBP, tối đa 2 MB</span>
+                </div>
+                <div class="image-picker" data-image-picker>
+                    <img class="image-preview" data-image-preview alt="" hidden />
+                    <span class="image-placeholder" data-image-placeholder aria-hidden="true">
+                        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="2" /><path d="M21 16l-5-5-8 8" /></svg>
+                    </span>
+                    <div class="image-meta">
+                        <span class="image-name" data-image-name>Chưa chọn ảnh</span>
+                        <span class="image-size field-hint" data-image-size></span>
+                    </div>
+                    <label class="btn btn-sm image-button">
+                        <span data-image-button-text>Chọn ảnh</span>
+                        <input type="file" class="visually-hidden" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                               aria-labelledby="product-image-label" data-image-input />
+                    </label>
+                </div>
+                <span class="field-error field-error-box" data-error-for="image"></span>
+            </div>
+
+            <div class="field">
+                <div class="field-label-row">
+                    <label class="field-label" for="product-description">Mô tả món</label>
+                    <span class="field-hint"><span data-description-count>0</span>/500</span>
+                </div>
+                <textarea class="textarea" id="product-description" name="description" maxlength="500" rows="3"></textarea>
+                <span class="field-error" data-error-for="description"></span>
+            </div>
+
+            <label class="switch switch-card">
+                <span class="switch-card-text">
+                    <span class="switch-card-title">Đang bán</span>
+                    <span class="field-hint">Hiện trên màn hình thu ngân và thực đơn QR gọi món.</span>
+                </span>
+                <input type="checkbox" name="isAvailable" role="switch" checked />
+                <span class="switch-track" aria-hidden="true"></span>
+            </label>
+        </div>
+
+        <div class="modal-foot">
+            <p class="modal-status" data-form-status aria-live="polite"></p>
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu món</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Thêm / sửa danh mục *@
+<dialog class="modal" id="category-modal" aria-labelledby="category-modal-title">
+    <form id="category-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <h2 class="modal-title" id="category-modal-title">Thêm danh mục</h2>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="category-name">Tên danh mục <span class="required">*</span></label>
+                <input class="input" id="category-name" name="name" maxlength="50" required autocomplete="off" />
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="category-sort">Thứ tự hiển thị</label>
+                <input class="input" id="category-sort" name="sortOrder" type="number" min="0" max="999" step="1" inputmode="numeric" />
+                <span class="field-hint">Danh mục có số nhỏ hơn được hiển thị trước trên thực đơn.</span>
+                <span class="field-error" data-error-for="sortOrder"></span>
+            </div>
+            <p class="field-error" data-error-for=""></p>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu danh mục</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Định lượng (BM04b) *@
+<dialog class="modal modal-lg" id="recipe-modal" aria-labelledby="recipe-modal-title">
+    <form id="recipe-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <span class="modal-icon" aria-hidden="true">⚗</span>
+            <h2 class="modal-title" id="recipe-modal-title">Định lượng</h2>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body">
+            <p class="alert alert-warn recipe-hint">
+                Lượng nguyên liệu cho 1 phần món, theo đơn vị cơ sở. Khi thanh toán, hệ thống trừ kho chi nhánh theo các số này.
+            </p>
+            <div class="recipe-head" aria-hidden="true">
+                <span>Nguyên liệu</span><span>Định lượng</span><span>Đơn vị</span><span>Thao tác</span>
+            </div>
+            <div class="recipe-lines" data-recipe-lines>
+                <div class="state" data-recipe-loading><span class="spinner" aria-hidden="true"></span><span>Đang tải định lượng...</span></div>
+            </div>
+            <p class="recipe-empty muted" data-recipe-empty hidden>Món chưa có định lượng. Bấm "Thêm nguyên liệu" để khai báo.</p>
+            <p class="field-error" data-error-for=""></p>
+            <button type="button" class="btn btn-dashed btn-block" data-action="add-recipe-line">+ Thêm nguyên liệu</button>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>✓ Lưu định lượng</button>
+        </div>
+    </form>
+
+    @* Mẫu một dòng định lượng (JS nhân bản). *@
+    <template id="recipe-line-template">
+        <div class="recipe-line" data-recipe-line>
+            <div class="field">
+                <label class="visually-hidden" data-label-ingredient>Nguyên liệu</label>
+                <select class="select" data-field="ingredientId" required>
+                    <option value="">Chọn nguyên liệu</option>
+                </select>
+                <span class="field-error" data-error-key="ingredientId"></span>
+            </div>
+            <div class="field">
+                <label class="visually-hidden" data-label-quantity>Định lượng</label>
+                <input class="input input-number" data-field="quantity" inputmode="decimal" autocomplete="off" />
+                <span class="field-error" data-error-key="quantity"></span>
+            </div>
+            <span class="recipe-unit" data-field="unit">–</span>
+            <button type="button" class="icon-btn btn-danger" data-action="remove-recipe-line" aria-label="Xóa dòng">
+                <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /></svg>
+            </button>
+        </div>
+    </template>
+</dialog>
+
+@* ------------------------------------------------------------ Xác nhận xóa *@
+<dialog class="modal modal-sm modal-confirm" id="confirm-modal" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="modal-head">
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body confirm-body">
+        <span class="confirm-icon" aria-hidden="true">
+            <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /></svg>
+        </span>
+        <h2 class="modal-title" id="confirm-title" data-confirm-title>Xóa?</h2>
+        <p id="confirm-message" data-confirm-message></p>
+    </div>
+    <div class="modal-foot modal-foot-split">
+        <button type="button" class="btn" data-close>Giữ lại</button>
+        <button type="button" class="btn btn-danger-solid" data-confirm-ok>Xóa</button>
+    </div>
+</dialog>

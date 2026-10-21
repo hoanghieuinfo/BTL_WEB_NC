@@ -125,8 +125,10 @@
   /**
    * Hiển thị data.errors = { tenTruong: [thông báo] } tại phần tử [data-error-for="tenTruong"].
    * Lỗi không gắn được với ô nào (key rỗng hoặc lạ) hiện ở [data-error-for=""] hoặc toast.
+   * options.focus = false: không chuyển con trỏ (dùng khi kiểm tra trong lúc người dùng đang gõ).
    */
-  function showErrors(form, errors) {
+  function showErrors(form, errors, options) {
+    var shouldFocus = !options || options.focus !== false;
     clearErrors(form);
     if (!errors) return;
 
@@ -154,7 +156,7 @@
       if (generalHolder) generalHolder.textContent = general.join(" ");
       else toast(general.join(" "), "error");
     }
-    if (firstInvalid) firstInvalid.focus();
+    if (firstInvalid && shouldFocus) firstInvalid.focus();
   }
 
   // ------------------------------------------------------------ Toast, trạng thái nút
