@@ -1,7 +1,17 @@
+// [AI] Claude hỗ trợ – Phụ lục Z.7
+using BTL_WEB_NC.Data;
+using BTL_WEB_NC.Infrastructure.Tenancy;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// TenantContext (Scoped) giữ tenant của request hiện tại; AppDbContext đọc nó để lọc dữ liệu (mục 3.2.2).
+builder.Services.AddScoped<TenantContext>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -14,16 +24,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

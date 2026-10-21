@@ -16,14 +16,14 @@
   - Endpoint AJAX: Bảng 3.21
   - An toàn thông tin: Bảng 3.22
 - `docs/design/*.png`: ảnh export từ Figma (file WNC). **Không gọi Figma MCP** (tài khoản Starter, hạn mức thấp);
-    chỉ xem ảnh trong thư mục này. Tên ảnh giữ nguyên tên frame Figma, bắt đầu bằng mã màn hình,
+  chỉ xem ảnh trong thư mục này. Tên ảnh giữ nguyên tên frame Figma, bắt đầu bằng mã màn hình,
   ví dụ `MH10 – Thêm món – lỗi.png`, `MH10 – Thực đơn (Mobile 360px).png`. Tìm ảnh của một màn hình bằng mẫu `MH10*.png`.
 
 ## 2. Môi trường
 
 - Hệ điều hành: Windows, VS Code, terminal PowerShell.
 - SQL Server LocalDB, connection string trong `BTL_WEB_NC/appsettings.json`:
-  `Server=(localdb)\\MSSQLLocalDB;Database=CafeSaaS;Trusted_Connection=True;TrustServerCertificate=True`
+  `Server=DESKTOP-LNNSOIN;Database=WNC_CafeSaaS;Trusted_Connection=True;TrustServerCertificate=True`
 - .NET 8 SDK, công cụ `dotnet-ef` (`dotnet tool install --global dotnet-ef`).
 - Không ghi mật khẩu thật vào `appsettings.json`.
 
@@ -80,6 +80,7 @@ comment `TẠM: thay bằng bản của Module 1 khi gộp repo`. Khi gộp, ch�
 ## 6. Quy tắc bắt buộc
 
 ### Đa tenant (R38, mục 3.2.2)
+
 - Mọi entity nghiệp vụ cài `ITenantEntity`. `AppUser` có `TenantId` nhưng **không** cài `ITenantEntity`;
   service quản lý nhân viên tự lọc theo `TenantId` của chủ quán.
 - `AppDbContext` đăng ký Global Query Filter cho mọi `ITenantEntity`, tham chiếu **thuộc tính của DbContext**
@@ -91,9 +92,11 @@ comment `TẠM: thay bằng bản của Module 1 khi gộp repo`. Khi gộp, ch�
 - Không gọi `IgnoreQueryFilters()` trong Area `Manage`.
 
 ### Giới hạn gói (R11, R17)
+
 Trước khi thêm chi nhánh/nhân viên, đếm bản ghi hiện có so với `MaxBranches`/`MaxStaff` của gói.
 
 ### AJAX (mục 3.2.6, Bảng 3.21)
+
 - GET để đọc, POST để ghi. Endpoint đúng Bảng 3.21: A06–A09.
 - Phản hồi: JSON `{ success, message, data }` (lỗi validate: `data.errors` dạng `{ tenTruong: [thông báo] }`) hoặc Partial View.
 - Mã trạng thái: 200, 400, 401, 403, 404, 409 (xung đột RowVersion), 429.
@@ -103,6 +106,7 @@ Trước khi thêm chi nhánh/nhân viên, đếm bản ghi hiện có so với 
   Ngoại lệ: chèn Partial View do server render (đã được Razor mã hóa).
 
 ### Kiến trúc
+
 - Controller mỏng: nhận request, validate ModelState, gọi service, trả kết quả. Nghiệp vụ nằm trong `Areas/Manage/Services`.
 - Controller gốc của Area: `[Area("Manage")]`, `[Authorize(Roles = "TenantAdmin")]`.
 - Tên bảng/cột đúng Bảng 3.9–3.17. Bảng khu vực tên `Zones` (không dùng `Areas`).
@@ -111,6 +115,7 @@ Trước khi thêm chi nhánh/nhân viên, đếm bản ghi hiện có so với 
 - Tiền: `decimal(18,0)`; số lượng/định lượng: `decimal(18,3)`.
 
 ### An toàn thông tin (Bảng 3.22)
+
 - Không nối chuỗi SQL; nếu bắt buộc dùng SQL thô thì `FromSqlInterpolated`.
 - Không dùng `Html.Raw` với dữ liệu người dùng.
 - Upload ảnh: chỉ JPG/PNG/WEBP, kiểm tra **cả phần mở rộng và chữ ký file (magic bytes)**, tối đa 2 MB,
@@ -118,11 +123,19 @@ Trước khi thêm chi nhánh/nhân viên, đếm bản ghi hiện có so với 
 - Chủ quán chỉ tạo được tài khoản vai trò `Staff`. Khóa hoặc chuyển chi nhánh nhân viên phải gọi `UpdateSecurityStampAsync`.
 
 ### Giao diện (R31, R33, R34)
+
 - Bám ảnh trong `docs/design/`. Màu đặt làm biến CSS trong `:root`:
   ```css
-  --sidebar:#2B1D16; --bg:#F6F7F5; --card:#FFFFFF; --border:#E4E2DE;
-  --text:#201B18; --muted:#A09A97; --primary:#2F6B4F; --primary-soft:#E6F0EA;
-  --warn-bg:#FBF0DC; --danger:#C0392B;
+  --sidebar: #2b1d16;
+  --bg: #f6f7f5;
+  --card: #ffffff;
+  --border: #e4e2de;
+  --text: #201b18;
+  --muted: #a09a97;
+  --primary: #2f6b4f;
+  --primary-soft: #e6f0ea;
+  --warn-bg: #fbf0dc;
+  --danger: #c0392b;
   ```
 - Sidebar trái 248px, topbar có breadcrumb `Tên quán / Trang`; dưới sidebar có mức dùng chi nhánh/nhân viên so với gói.
 - Mobile-first, mốc `min-width: 768px` và `min-width: 1280px`; dưới 768px bảng chuyển thành thẻ, sidebar thành menu thu gọn.
@@ -145,6 +158,7 @@ Trước khi thêm chi nhánh/nhân viên, đếm bản ghi hiện có so với 
 ## 8. Định nghĩa "xong" cho mỗi bước
 
 Một bước chỉ được báo là xong khi:
+
 1. `dotnet build` không lỗi, không cảnh báo nullable mới.
 2. `dotnet test` qua hết.
 3. Có migration nếu đổi model, và `dotnet ef database update` chạy được.
@@ -153,6 +167,7 @@ Một bước chỉ được báo là xong khi:
    (kể cả ở 360px và 768px).
 
 Test bắt buộc:
+
 - **Cô lập tenant:** đăng nhập tenant A, đọc/sửa/xóa ID của tenant B → 404; gửi khóa ngoại (CategoryId, IngredientId…)
   của tenant B → 404 và không có bản ghi nào được tạo.
 - **Trừ kho (Việc 12):** đúng lượng theo định lượng × số lượng; bỏ qua món hủy và món chưa định lượng;
