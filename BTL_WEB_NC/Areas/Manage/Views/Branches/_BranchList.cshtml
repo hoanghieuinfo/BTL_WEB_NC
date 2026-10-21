@@ -4,7 +4,7 @@
 @{
     static string Time(TimeOnly t) => t.ToString("HH:mm");
 }
-<div data-list-meta data-usage-count="@Model.Usage.BranchCount" data-usage-max="@Model.Usage.MaxBranches"
+<div data-list-meta data-meta-count="@Model.Usage.BranchCount" data-meta-max="@Model.Usage.MaxBranches"
      data-branch-count="@Model.Branches.Count" data-selected-id="@Model.SelectedId">
     @if (Model.Branches.Count == 0)
     {
