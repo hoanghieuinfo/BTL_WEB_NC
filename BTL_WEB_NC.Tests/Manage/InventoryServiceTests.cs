@@ -271,6 +271,8 @@ public class InventoryServiceTests
         Assert.Equal(900_000m, list.PeriodTotal);
 
         await Assert.ThrowsAsync<NotFoundException>(() => Service(check).GetReceiptAsync(receiptB));
+        // Lọc theo chi nhánh của quán B → 404 (không trả danh sách rỗng), thống nhất với Tồn kho và Báo cáo.
+        await Assert.ThrowsAsync<NotFoundException>(() => Service(check).ListReceiptsAsync(new ReceiptListQuery { BranchId = ids.BranchB }));
     }
 
     [Fact]

@@ -85,6 +85,9 @@
     loadList();
   }
 
+  // Enter trong ô tìm kiếm không gửi form (thay cho onsubmit inline – CSP của Module 1 chặn JS inline).
+  filterForm.addEventListener("submit", function (event) { event.preventDefault(); });
+
   var timer = null;
   filterForm.elements.q.addEventListener("input", function () {
     clearTimeout(timer);

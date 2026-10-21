@@ -1,3 +1,5 @@
+<!-- [AI] Claude hỗ trợ – Phụ lục Z.7 -->
+
 # Bộ prompt cho Claude Code – Module 2 (Hoàng Minh Hiếu)
 
 Đặt file này tại `docs/PROMPTS.md`. Mỗi bước mở **một phiên mới**, bật Plan mode (Shift+Tab), dán prompt,

@@ -32,11 +32,13 @@ public class BranchService : IBranchService
 {
     private readonly AppDbContext _db;
     private readonly IPlanUsageService _usage;
+    private readonly IPlanLimitGuard _limits;
 
-    public BranchService(AppDbContext db, IPlanUsageService usage)
+    public BranchService(AppDbContext db, IPlanUsageService usage, IPlanLimitGuard limits)
     {
         _db = db;
         _usage = usage;
+        _limits = limits;
     }
 
     // ------------------------------------------------------------------ Đọc
@@ -79,9 +81,15 @@ public class BranchService : IBranchService
 
     // ------------------------------------------------------------------ Chi nhánh
 
-    /// <summary>R11: đếm chi nhánh hiện có (kể cả đang tạm ngưng) so với MaxBranches của gói trước khi thêm.</summary>
+    /// <summary>
+    /// R11: đếm chi nhánh hiện có (kể cả đang tạm ngưng) so với MaxBranches của gói trước khi thêm.
+    /// Đếm và thêm nằm trong một transaction đã khóa dòng Tenants (PlanLimitGuard) → hai request đồng thời không cùng vượt giới hạn.
+    /// </summary>
     public async Task<int> CreateBranchAsync(BranchFormModel model, CancellationToken ct = default)
     {
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        await _limits.LockTenantAsync(ct);
+
         var usage = await _usage.GetAsync(ct);
         if (usage.BranchCount >= usage.MaxBranches)
         {
@@ -97,6 +105,7 @@ public class BranchService : IBranchService
         Apply(branch, model, name, slug);
         _db.Branches.Add(branch);
         await SaveBranchAsync(name, slug, exceptId: null, ct);
+        await transaction.CommitAsync(ct);
         return branch.Id;
     }
 

@@ -70,7 +70,8 @@
 }
 .order-row > * { display: block; padding: 0; text-align: left; }
 .order-row .col-code { grid-column: 1; grid-row: 1 / span 2; }
-.order-row .link-btn { min-height: 28px; font-size: 15px; }
+.order-row .link-btn { min-height: 28px; font-size: 15px; position: relative; }
+.order-row .link-btn::after { content: ""; position: absolute; inset: -8px 0; } /* vùng chạm 44px (R34) */
 .order-meta { display: block; font-size: 12px; color: var(--text-2); font-weight: 400; }
 .order-row .col-branch { display: none; }
 .order-row .col-total { grid-column: 2; grid-row: 1; font-weight: 700; text-align: right; }

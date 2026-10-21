@@ -331,8 +331,11 @@ public class BranchServiceTests : IDisposable
 
     // ------------------------------------------------------------------ Hàm phụ
 
-    private static BranchService Service(AppDbContext db, int tenantId) =>
-        new(db, new PlanUsageService(db, new TenantContext { TenantId = tenantId }));
+    private static BranchService Service(AppDbContext db, int tenantId)
+    {
+        var tenant = new TenantContext { TenantId = tenantId };
+        return new(db, new PlanUsageService(db, tenant), new PlanLimitGuard(db, tenant));
+    }
 
     private static BranchFormModel Form(string name, string slug) => new()
     {

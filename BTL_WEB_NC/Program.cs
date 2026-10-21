@@ -35,6 +35,7 @@ builder.Services.AddMemoryCache();
 
 // Service của Area Manage (Module 2).
 builder.Services.AddScoped<IPlanUsageService, PlanUsageService>();
+builder.Services.AddScoped<IPlanLimitGuard, PlanLimitGuard>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IBranchService, BranchService>();

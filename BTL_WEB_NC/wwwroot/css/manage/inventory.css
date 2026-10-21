@@ -131,7 +131,7 @@
   min-width: 36px; height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px;
   background: #FBF8F5; font-size: 12px; cursor: pointer; position: relative;
 }
-.unit-chip::after { content: ""; position: absolute; inset: -6px -2px; } /* vùng chạm ≥ 44px */
+.unit-chip::after { content: ""; position: absolute; inset: -6px -4px; } /* vùng chạm ≥ 44 × 44px */
 .unit-chip.is-active { background: var(--primary-soft); border-color: #B7D3C3; color: var(--primary); font-weight: 600; }
 .unit-chip:disabled { opacity: 0.5; cursor: not-allowed; }
 .input[readonly] { background: #F6F3F0; color: var(--text-2); }
@@ -160,7 +160,8 @@
 .receipt-table thead { display: none; }
 .receipt-row { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
 .receipt-row > * { display: block; padding: 0; text-align: left; }
-.receipt-row .col-code .link-btn { font-size: 15px; min-height: 32px; }
+.receipt-row .col-code .link-btn { font-size: 15px; min-height: 32px; position: relative; }
+.receipt-row .col-code .link-btn::after { content: ""; position: absolute; inset: -6px 0; } /* vùng chạm 44px (R34) */
 .receipt-row .col-detail { display: flex; }
 .receipt-row .col-total { font-weight: 700; }
 .receipt-row .col-actions .btn { width: 100%; }

@@ -37,13 +37,16 @@ public class StaffService : IStaffService
     private readonly UserManager<AppUser> _users;
     private readonly TenantContext _tenant;
     private readonly IPlanUsageService _usage;
+    private readonly IPlanLimitGuard _limits;
 
-    public StaffService(AppDbContext db, UserManager<AppUser> users, TenantContext tenant, IPlanUsageService usage)
+    public StaffService(AppDbContext db, UserManager<AppUser> users, TenantContext tenant, IPlanUsageService usage,
+        IPlanLimitGuard limits)
     {
         _db = db;
         _users = users;
         _tenant = tenant;
         _usage = usage;
+        _limits = limits;
     }
 
     private int TenantId => _tenant.TenantId ?? throw new InvalidOperationException("Không xác định được tenant.");
@@ -111,6 +114,11 @@ public class StaffService : IStaffService
 
     public async Task<StaffCreatedResult> CreateAsync(StaffFormModel model, CancellationToken ct = default)
     {
+        // Đếm suất, tạo tài khoản và gán vai trò trong MỘT transaction đã khóa dòng Tenants (PlanLimitGuard):
+        // không còn tài khoản "không vai trò", và hai request đồng thời không cùng vượt MaxStaff (R17).
+        // UserManager dùng chung AppDbContext của request nên các lần lưu của Identity nằm trong transaction này.
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        await _limits.LockTenantAsync(ct);
         await EnsureStaffSlotAsync(ct); // R17
         var branch = await FindActiveBranchAsync(model.BranchId!.Value, ct);
 
@@ -135,8 +143,6 @@ public class StaffService : IStaffService
             MustChangePassword = true      // R03: nhân viên phải đổi ở lần đăng nhập đầu (Module 1 thực hiện)
         };
 
-        // Tạo tài khoản và gán vai trò là hai lần lưu → gói trong một transaction để không còn tài khoản "không vai trò".
-        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         ThrowIfFailed(await _users.CreateAsync(user, password));
         ThrowIfFailed(await _users.AddToRoleAsync(user, AppRoles.Staff)); // vai trò cố định trong code
         await transaction.CommitAsync(ct);
@@ -220,9 +226,12 @@ public class StaffService : IStaffService
             return;
         }
 
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        await _limits.LockTenantAsync(ct);
         await EnsureStaffSlotAsync(ct);
         user.IsActive = true;
         ThrowIfFailed(await _users.UpdateSecurityStampAsync(user));
+        await transaction.CommitAsync(ct);
     }
 
     // ------------------------------------------------------------------ Hàm phụ

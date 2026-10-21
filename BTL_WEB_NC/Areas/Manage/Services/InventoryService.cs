@@ -121,6 +121,11 @@ public class InventoryService : IInventoryService
 
     public async Task<ReceiptListResult> ListReceiptsAsync(ReceiptListQuery query, CancellationToken ct = default)
     {
+        // Lọc theo chi nhánh của quán khác → 404, thống nhất với tab Tồn kho và trang Báo cáo.
+        if (query.BranchId.HasValue)
+        {
+            await FindBranchAsync(query.BranchId, ct);
+        }
         var receipts = _db.StockReceipts.AsNoTracking();
         if (query.BranchId.HasValue)
         {
@@ -138,8 +143,8 @@ public class InventoryService : IInventoryService
         }
 
         var total = await receipts.CountAsync(ct);
-        // Tổng tiền tính trên các số nguyên đã làm tròn → cộng trong bộ nhớ không sai số.
-        var periodTotal = (await receipts.Select(r => r.TotalAmount).ToListAsync(ct)).Sum();
+        // Cộng trên SQL (SUM), không tải mọi phiếu của kỳ về bộ nhớ.
+        var periodTotal = await receipts.SumAsync(r => r.TotalAmount, ct);
         var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)ReceiptListQuery.PageSize));
         var page = Math.Clamp(query.Page, 1, totalPages);
 

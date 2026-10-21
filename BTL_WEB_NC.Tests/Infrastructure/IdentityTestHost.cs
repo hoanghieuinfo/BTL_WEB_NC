@@ -26,6 +26,7 @@ public static class IdentityTestHost
             .AddEntityFrameworkStores<AppDbContext>()
             .AddClaimsPrincipalFactory<AppUserClaimsPrincipalFactory>();
         services.AddScoped<IPlanUsageService, PlanUsageService>();
+        services.AddScoped<IPlanLimitGuard, PlanLimitGuard>();
         services.AddScoped<IStaffService, StaffService>();
         return services.BuildServiceProvider();
     }

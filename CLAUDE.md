@@ -1,3 +1,5 @@
+<!-- [AI] Claude hỗ trợ – Phụ lục Z.7 -->
+
 # CLAUDE.md – BTL_WEB_NC (BTL Lập trình Web nâng cao, nhóm WNC.G12)
 
 Đề tài: **Quản lý (nhiều) quán cafe theo mô hình SaaS**. Người dùng Claude Code trong repo này là
