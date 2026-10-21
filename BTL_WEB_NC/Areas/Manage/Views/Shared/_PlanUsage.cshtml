@@ -17,9 +17,9 @@
     <div class="usage-row">
         <div class="usage-label">
             <span>Nhân viên đã dùng</span>
-            <span class="usage-value">@Model.StaffCount/@Model.MaxStaff</span>
+            <span class="usage-value" data-sidebar-usage="staff">@Model.StaffCount/@Model.MaxStaff</span>
         </div>
-        <progress class="usage-bar @(Model.StaffCount >= Model.MaxStaff ? "is-full" : "")"
+        <progress class="usage-bar @(Model.StaffCount >= Model.MaxStaff ? "is-full" : "")" data-sidebar-usage-bar="staff"
                   max="@Model.MaxStaff" value="@Model.StaffCount"
                   aria-label="Nhân viên đã dùng @Model.StaffCount trên @Model.MaxStaff">@Percent(Model.StaffCount, Model.MaxStaff)%</progress>
     </div>

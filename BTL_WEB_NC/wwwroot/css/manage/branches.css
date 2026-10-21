@@ -6,20 +6,6 @@
 .branches-title { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .branches-action { display: flex; flex-direction: column; gap: 6px; }
 .page-action { width: 100%; }
-.limit-note { font-size: 13px; color: var(--text-2); }
-
-.usage-pill {
-  display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px;
-  background: var(--primary-soft); color: var(--primary); font-size: 13px; font-weight: 600;
-}
-.usage-pill.is-full { background: var(--warn-bg); color: var(--warn-text); }
-.usage-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.usage-mini {
-  width: 64px; height: 5px; border: 0; border-radius: 999px; overflow: hidden; appearance: none; background: #DCE7E0;
-}
-.usage-mini::-webkit-progress-bar { background: #DCE7E0; }
-.usage-mini::-webkit-progress-value { background: var(--primary); }
-.usage-mini::-moz-progress-bar { background: var(--primary); }
 
 /* ---------------------------------------------------------------- Danh sách chi nhánh: < 768px là thẻ */
 
@@ -52,9 +38,6 @@
 .branch-address { font-size: 13px; color: var(--text-2); }
 .hours { white-space: nowrap; }
 
-.badge .dot, .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
-.dot-success { background: var(--primary); }
-
 .tip-card { background: var(--card); }
 .tip-title { font-size: 13px; font-weight: 700; color: var(--warn-text); letter-spacing: 0.02em; margin-bottom: 4px; }
 
@@ -69,7 +52,6 @@
 .zone-branch { font-weight: 400; font-size: 13px; }
 .zone-summary { margin-top: 4px; font-size: 13px; color: var(--text-2); }
 .zone-head .btn-soft { width: 100%; }
-.btn-soft { background: #FBF1EA; border-color: #F1E2D7; }
 
 .zone { padding: 14px 0; border-top: 1px solid var(--border); }
 .zone-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
@@ -109,8 +91,6 @@
 
 /* ---------------------------------------------------------------- Hộp thoại chi nhánh */
 
-.form-summary { display: flex; flex-direction: column; gap: 2px; }
-.form-summary[hidden] { display: none; }
 .input-prefix { display: flex; align-items: stretch; }
 .input-prefix .prefix {
   display: flex; align-items: center; padding: 0 10px; border: 1px solid var(--border); border-right: 0;
@@ -130,10 +110,6 @@
 .choice-title { display: flex; align-items: center; font-weight: 600; }
 .choice-card .field-hint { display: block; }
 
-.usage-preview { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radius); background: #EEF5F0; }
-.usage-preview[hidden] { display: none; }
-.usage-preview strong { color: var(--primary); }
-.usage-preview .usage-mini { width: 100%; }
 
 /* ---------------------------------------------------------------- Hộp thoại QR */
 
@@ -147,8 +123,6 @@
 .qr-title { font-size: 18px; font-weight: 700; }
 .qr-caption { font-size: 13px; color: var(--text-2); }
 .qr-link { margin-top: 16px; }
-.copy-field { display: flex; gap: 8px; }
-.copy-field .input { font-family: ui-monospace, Consolas, monospace; font-size: 13px; background: #F6F3F0; }
 .qr-note { margin-top: 12px; font-size: 13px; }
 .qr-foot { flex-wrap: wrap; }
 .qr-foot .btn { text-decoration: none; }
@@ -192,7 +166,6 @@
   .table-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
   .table-card { min-height: 72px; }
 
-  .copy-field .input { flex: 1; }
   .qr-foot [data-qr-open] { margin-right: auto; }
 }
 

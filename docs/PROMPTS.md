@@ -121,19 +121,22 @@ Làm MH13 /manage/reports theo P08, R20, BM09 và ảnh docs/design/MH13*.png.
 Sau đó làm MH08 /manage theo các ảnh MH08*.png: 3 thẻ số liệu hôm nay so với hôm qua, danh sách nguyên liệu âm kho/dưới mức, thông tin gói và ngày hết hạn, mức dùng chi nhánh/nhân viên, thao tác nhanh; trạng thái chưa có hóa đơn.
 - Test: số liệu báo cáo khớp với dữ liệu seed tính tay cho 1 ngày; không lẫn số liệu tenant khác.
 ```
-
 ## Bước 7 – Rà soát trước Milestone 2
 
 ```
 Rà soát toàn bộ Area Manage theo CLAUDE.md mục 6 và 8. CHƯA sửa; lập bảng (file, dòng, vấn đề, mức độ, cách sửa) cho:
 - Action POST thiếu anti-forgery; chỗ nhận TenantId/BranchId từ request; khóa ngoại chưa tra lại qua DbSet đã lọc; chỗ dùng IgnoreQueryFilters.
 - Html.Raw hoặc innerHTML với dữ liệu người dùng.
+- JavaScript inline (<script> có nội dung trong .cshtml, onclick=, onchange=…) sẽ bị chặn khi Module 1 bật header CSP.
 - Responsive ở 360/768/1280px so với ảnh thiết kế; vùng chạm < 44px.
 - Truy vấn có thể chậm (thiếu AsNoTracking, N+1, thiếu phân trang).
 - Xóa cứng dữ liệu đã phát sinh giao dịch.
+- Giới hạn gói (chi nhánh và nhân viên) có thể bị vượt khi hai request đồng thời: đề xuất cách khóa (ví dụ UPDLOCK trên dòng Tenants trong transaction) dùng chung cho cả hai chỗ.
+- File do Claude tạo/sửa thiếu comment [AI] ở đầu file theo CLAUDE.md mục 7.
 Sau khi tôi duyệt bảng thì mới sửa.
-```
 
+Ngoài bảng trên, lập file docs/EndpointBoSung.md liệt kê mọi endpoint của Area Manage chưa có trong Bảng 3.21 (phương thức, đường dẫn, mục đích, kết quả JSON/Partial View, yêu cầu Rxx), đánh mã nối tiếp từ A17, để tôi bổ sung vào báo cáo.
+```
 ## Bước 8 – Chương 4 và nhật ký AI
 
 ```

@@ -1,0 +1,127 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Danh sách nhân viên (Partial View). Razor mã hóa mọi dữ liệu, kể cả trong data-*. *@
+@model StaffListResult
+@{
+    var usage = ViewData["Usage"] as PlanUsage;
+
+    static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => "?",
+            1 => parts[0][..1].ToUpperInvariant(),
+            _ => (parts[0][..1] + parts[^1][..1]).ToUpperInvariant()
+        };
+    }
+    static string Phone(string? p) => p is { Length: 10 } ? $"{p[..4]} {p[4..7]} {p[7..]}" : p ?? "–";
+
+    var pages = new List<int?>();
+    for (var p = 1; p <= Model.TotalPages; p++)
+    {
+        if (p == 1 || p == Model.TotalPages || Math.Abs(p - Model.Page) <= 1) pages.Add(p);
+        else if (pages.Count > 0 && pages[^1] is not null) pages.Add(null);
+    }
+}
+<div data-list-meta data-page="@Model.Page" data-usage-count="@usage?.StaffCount" data-usage-max="@usage?.MaxStaff">
+@if (Model.TotalCount == 0)
+{
+    <div class="state">
+        @if (Model.Query.HasFilter)
+        {
+            <p class="state-title">Không tìm thấy nhân viên phù hợp</p>
+            <p>Thử đổi từ khóa hoặc bỏ bớt bộ lọc.</p>
+            <button type="button" class="btn" data-action="clear-filters">Xóa bộ lọc</button>
+        }
+        else
+        {
+            <p class="state-title">Quán chưa có nhân viên</p>
+            <p>Thêm tài khoản thu ngân cho từng chi nhánh để bắt đầu bán hàng.</p>
+        }
+    </div>
+}
+else
+{
+    <table class="staff-table">
+        <thead>
+            <tr>
+                <th scope="col">Nhân viên</th>
+                <th scope="col">Số điện thoại</th>
+                <th scope="col">Chi nhánh</th>
+                <th scope="col">Ngày vào làm</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col"><span class="visually-hidden">Thao tác</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Items)
+            {
+                var status = !s.IsActive ? "locked" : s.MustChangePassword ? "pending" : "active";
+                <tr class="staff-row @(s.IsActive ? "" : "is-locked")" data-staff-id="@s.Id" data-name="@s.FullName"
+                    data-email="@s.Email" data-phone="@s.Phone" data-branch-id="@s.BranchId" data-branch-name="@s.BranchName">
+                    <td class="col-person">
+                        <span class="avatar avatar-@(s.FullName.Sum(c => (int)c) % 4)" aria-hidden="true">@Initials(s.FullName)</span>
+                        <span class="person-text">
+                            <span class="person-name">@s.FullName</span>
+                            <span class="person-email">@s.Email</span>
+                            <span class="status-mobile"><partial name="_StaffStatus" model="status" /></span>
+                        </span>
+                    </td>
+                    <td class="col-detail" data-label="Số điện thoại">@Phone(s.Phone)</td>
+                    <td class="col-detail" data-label="Chi nhánh">
+                        <span class="branch-chip">@(s.BranchName ?? "Chưa phân công")</span>
+                    </td>
+                    <td class="col-detail" data-label="Ngày vào làm">@(s.StartDate?.ToString("dd/MM/yyyy") ?? "–")</td>
+                    <td class="col-status"><partial name="_StaffStatus" model="status" /></td>
+                    <td class="col-actions">
+                        <div class="row-actions">
+                            @if (s.IsActive)
+                            {
+                                <button type="button" class="btn btn-sm btn-soft" data-action="transfer">Chuyển chi nhánh</button>
+                                <button type="button" class="btn btn-sm btn-danger" data-action="lock">Khóa tài khoản</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-sm" data-action="unlock">Mở khóa</button>
+                            }
+                            <details class="row-menu">
+                                <summary class="icon-btn" aria-label="Tùy chọn khác cho @s.FullName">⋯</summary>
+                                <div class="row-menu-list">
+                                    <button type="button" class="menu-item" data-action="edit">Sửa thông tin</button>
+                                    @if (s.IsActive)
+                                    {
+                                        <button type="button" class="menu-item" data-action="reset-password">Đặt lại mật khẩu</button>
+                                    }
+                                </div>
+                            </details>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav class="pagination" aria-label="Phân trang nhân viên">
+        <p class="pagination-info">Hiển thị <strong>@Model.From–@Model.To</strong> trên <strong>@Model.TotalCount</strong> nhân viên</p>
+        <div class="pagination-pages">
+            <button type="button" class="page-btn" data-page="@(Model.Page - 1)" disabled="@(Model.Page <= 1)">‹ Trước</button>
+            @foreach (var p in pages)
+            {
+                if (p is null)
+                {
+                    <span class="page-gap" aria-hidden="true">…</span>
+                }
+                else if (p == Model.Page)
+                {
+                    <button type="button" class="page-btn is-current" aria-current="page" data-page="@p">@p</button>
+                }
+                else
+                {
+                    <button type="button" class="page-btn" data-page="@p" aria-label="Trang @p">@p</button>
+                }
+            }
+            <button type="button" class="page-btn" data-page="@(Model.Page + 1)" disabled="@(Model.Page >= Model.TotalPages)">Sau ›</button>
+        </div>
+    </nav>
+}
+</div>

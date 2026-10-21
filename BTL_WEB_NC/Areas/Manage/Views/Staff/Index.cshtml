@@ -1,0 +1,75 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH11 – Nhân viên (P04, R17, BM08). Danh sách tải bằng AJAX vào [data-staff-list]. *@
+@model StaffPageModel
+@{
+    ViewData["Title"] = "Nhân viên";
+    var usage = Model.Usage;
+    var full = usage.StaffCount >= usage.MaxStaff;
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage/staff.css" asp-append-version="true" />
+}
+
+<section class="card staff-head">
+    <div class="staff-title">
+        <h1 class="page-title">Nhân viên</h1>
+        <span class="usage-pill @(full ? "is-full" : "")" data-usage-pill>
+            <span class="usage-dot" aria-hidden="true"></span>
+            <span><span data-usage-count>@usage.StaffCount</span>/<span data-usage-max>@usage.MaxStaff</span> nhân viên của gói</span>
+        </span>
+    </div>
+    <div class="staff-action">
+        <button type="button" class="btn btn-primary page-action" data-action="add-staff"
+                disabled="@(full || Model.Branches.Count == 0)" aria-describedby="staff-limit-note">
+            <span aria-hidden="true">+</span> Thêm nhân viên
+        </button>
+        <p class="limit-note" id="staff-limit-note" data-limit-note hidden="@(!full)">
+            Đã dùng hết suất nhân viên của gói @usage.PlanName. Khóa tài khoản đã nghỉ hoặc nâng cấp gói.
+        </p>
+        @if (Model.Branches.Count == 0)
+        {
+            <p class="limit-note">Cần có ít nhất một chi nhánh đang hoạt động trước khi thêm nhân viên.</p>
+        }
+    </div>
+</section>
+
+<form class="card filter-bar staff-filter" data-filter-form role="search" onsubmit="return false">
+    <label class="search-field">
+        <span class="visually-hidden">Tìm theo tên, email hoặc số điện thoại</span>
+        <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+        <input type="search" class="input" name="q" placeholder="Tìm theo tên, email hoặc số điện thoại..." maxlength="100" autocomplete="off" />
+    </label>
+    <label>
+        <span class="visually-hidden">Lọc theo chi nhánh</span>
+        <select class="select" name="branchId">
+            <option value="">Tất cả chi nhánh</option>
+            @foreach (var b in Model.Branches)
+            {
+                <option value="@b.Id">@b.Name</option>
+            }
+        </select>
+    </label>
+    <label>
+        <span class="visually-hidden">Lọc theo trạng thái</span>
+        <select class="select" name="status">
+            <option value="">Mọi trạng thái</option>
+            <option value="active">Đang làm</option>
+            <option value="pending">Chưa đổi mật khẩu</option>
+            <option value="locked">Đã nghỉ (đã khóa)</option>
+        </select>
+    </label>
+</form>
+
+<section class="card staff-panel" data-staff-list aria-live="polite" aria-busy="true" aria-label="Danh sách nhân viên">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải danh sách nhân viên...</span></div>
+</section>
+
+<template id="staff-loading-template">
+    <div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải danh sách nhân viên...</span></div>
+</template>
+
+<partial name="_StaffModals" model="Model" />
+
+@section Scripts {
+    <script src="~/js/manage/staff.js" asp-append-version="true"></script>
+}

@@ -410,6 +410,36 @@ body.is-sidebar-open .sidebar { transform: none; box-shadow: var(--shadow-lg); }
 .modal-status { margin-right: auto; align-self: center; color: var(--text-2); font-size: 13px; }
 .modal-foot { border-top: 1px solid var(--border); padding-top: 14px; background: #FBF8F5; }
 
+/* ---------------------------------------------------------------- Mức dùng gói, ghi chú, khung lỗi tổng (MH09, MH11) */
+
+.usage-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px;
+  background: var(--primary-soft); color: var(--primary); font-size: 13px; font-weight: 600;
+}
+.usage-pill.is-full { background: var(--warn-bg); color: var(--warn-text); }
+.usage-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.usage-mini {
+  width: 64px; height: 5px; border: 0; border-radius: 999px; overflow: hidden; appearance: none; background: #DCE7E0;
+}
+.usage-mini::-webkit-progress-bar { background: #DCE7E0; }
+.usage-mini::-webkit-progress-value { background: var(--primary); }
+.usage-mini::-moz-progress-bar { background: var(--primary); }
+.usage-preview { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radius); background: #EEF5F0; }
+.usage-preview[hidden] { display: none; }
+.usage-preview strong { color: var(--primary); }
+.usage-preview .usage-mini { width: 100%; }
+.limit-note { font-size: 13px; color: var(--text-2); }
+
+.form-summary { display: flex; flex-direction: column; gap: 2px; }
+.form-summary[hidden] { display: none; }
+
+.badge .dot, .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
+.dot-success { background: var(--primary); }
+.btn-soft { background: #FBF1EA; border-color: #F1E2D7; }
+
+.copy-field { display: flex; gap: 8px; }
+.copy-field .input { flex: 1; font-family: ui-monospace, Consolas, monospace; font-size: 13px; background: #F6F3F0; }
+
 /* ---------------------------------------------------------------- Trang đăng nhập [TẠM – Module 1] */
 
 .auth-page { min-height: 100vh; display: grid; place-items: center; padding: 16px; }

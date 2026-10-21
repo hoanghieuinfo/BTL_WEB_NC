@@ -1,0 +1,14 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@model string
+@switch (Model)
+{
+    case "pending":
+        <span class="badge badge-warn"><span class="dot" aria-hidden="true"></span>Chưa đổi mật khẩu</span>
+        break;
+    case "locked":
+        <span class="badge"><span class="dot" aria-hidden="true"></span>Đã nghỉ</span>
+        break;
+    default:
+        <span class="badge badge-success"><span class="dot" aria-hidden="true"></span>Đang làm</span>
+        break;
+}

@@ -1,0 +1,196 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Hộp thoại của MH11. Mật khẩu khởi tạo chỉ điền bằng textContent và bị xóa khỏi DOM khi đóng hộp thoại. *@
+@model StaffPageModel
+@{
+    var today = BTL_WEB_NC.Infrastructure.VietnamTime.Today.ToString("yyyy-MM-dd");
+}
+
+@* ------------------------------------------------------------ Thêm nhân viên (BM08) *@
+<dialog class="modal modal-lg" id="staff-modal" aria-labelledby="staff-modal-title">
+    <form id="staff-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <span class="modal-icon" aria-hidden="true">+</span>
+            <div>
+                <h2 class="modal-title" id="staff-modal-title">Thêm nhân viên mới</h2>
+                <p class="modal-subtitle">Khai báo tài khoản nhân viên và gán chi nhánh phục vụ.</p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+
+        <div class="modal-body form">
+            <div class="alert alert-danger form-summary" data-form-summary role="alert" hidden>
+                <strong>Không thể tạo tài khoản</strong>
+                <span data-summary-text></span>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="staff-name">Họ tên <span class="required">*</span></label>
+                <input class="input" id="staff-name" name="fullName" maxlength="100" required autocomplete="off" />
+                <span class="field-error" data-error-for="fullName"></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="staff-email">Email đăng nhập <span class="required">*</span></label>
+                <input class="input" id="staff-email" name="email" type="email" maxlength="256" required autocomplete="off" spellcheck="false" />
+                <span class="field-error" data-error-for="email"></span>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label class="field-label" for="staff-phone">Số điện thoại <span class="required">*</span></label>
+                    <input class="input" id="staff-phone" name="phone" inputmode="numeric" maxlength="10" required autocomplete="off" />
+                    <span class="field-error" data-error-for="phone"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="staff-start">Ngày vào làm <span class="required">*</span></label>
+                    <input class="input" id="staff-start" name="startDate" type="date" required value="@today" />
+                    <span class="field-error" data-error-for="startDate"></span>
+                </div>
+            </div>
+            <div class="field">
+                <label class="field-label" for="staff-branch">Chi nhánh làm việc <span class="required">*</span></label>
+                <select class="select" id="staff-branch" name="branchId" required>
+                    @foreach (var b in Model.Branches)
+                    {
+                        <option value="@b.Id">@b.Name</option>
+                    }
+                </select>
+                <span class="field-hint">Nhân viên chỉ bán hàng được ở chi nhánh này.</span>
+                <span class="field-error" data-error-for="branchId"></span>
+            </div>
+            <p class="field-error" data-error-for=""></p>
+
+            <div class="usage-preview">
+                <span>Sau khi tạo, nhân viên dùng <strong data-preview-text></strong> suất của gói @Model.Usage.PlanName.</span>
+            </div>
+        </div>
+
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Tạo tài khoản</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Sửa nhân viên (họ tên, số điện thoại) *@
+<dialog class="modal" id="edit-modal" aria-labelledby="edit-title">
+    <form id="edit-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="edit-title">Sửa thông tin nhân viên</h2>
+                <p class="modal-subtitle">Email đăng nhập, chi nhánh và vai trò không đổi ở đây.</p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <span class="field-label">Email đăng nhập</span>
+                <span class="readonly-value" data-edit-email></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="edit-name">Họ tên <span class="required">*</span></label>
+                <input class="input" id="edit-name" name="fullName" maxlength="100" required autocomplete="off" />
+                <span class="field-error" data-error-for="fullName"></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="edit-phone">Số điện thoại <span class="required">*</span></label>
+                <input class="input" id="edit-phone" name="phone" inputmode="numeric" maxlength="10" required autocomplete="off" />
+                <span class="field-error" data-error-for="phone"></span>
+            </div>
+            <p class="field-error" data-error-for=""></p>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu thay đổi</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Mật khẩu khởi tạo (hiện một lần – khi tạo mới hoặc đặt lại) *@
+<dialog class="modal modal-sm" id="password-modal" aria-labelledby="password-title">
+    <div class="modal-head">
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body password-body">
+        <span class="success-icon" aria-hidden="true">✓</span>
+        <h2 class="modal-title" id="password-title" data-password-title>Đã tạo tài khoản</h2>
+        <p class="muted" data-password-subtitle></p>
+
+        <div class="field">
+            <span class="field-label" id="password-label">Mật khẩu khởi tạo</span>
+            <div class="copy-field">
+                <code class="password-value" data-password-value aria-labelledby="password-label"></code>
+                <button type="button" class="btn btn-sm" data-action="copy-password">Sao chép</button>
+            </div>
+        </div>
+
+        <div class="alert alert-warn">
+            <strong>LƯU Ý AN TOÀN</strong><br />
+            Mật khẩu chỉ hiện một lần. Gửi cho nhân viên qua kênh riêng; nhân viên phải đổi mật khẩu khi đăng nhập lần đầu.
+        </div>
+
+        <dl class="account-facts">
+            <div><dt>Email đăng nhập</dt><dd data-password-email></dd></div>
+            <div><dt>Chi nhánh</dt><dd data-password-branch></dd></div>
+            <div><dt>Vai trò</dt><dd>Thu ngân (Staff)</dd></div>
+        </dl>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="btn btn-primary btn-block" data-close>✓ Đã lưu mật khẩu</button>
+    </div>
+</dialog>
+
+@* ------------------------------------------------------------ Chuyển chi nhánh *@
+<dialog class="modal" id="transfer-modal" aria-labelledby="transfer-title">
+    <form id="transfer-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="transfer-title">Chuyển nhân viên sang chi nhánh khác</h2>
+                <p class="modal-subtitle">Nhân viên chỉ bán hàng được ở chi nhánh được phân công.</p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="person-card">
+                <span class="avatar" aria-hidden="true" data-transfer-initials></span>
+                <span class="person-text">
+                    <span class="person-name" data-transfer-name></span>
+                    <span class="person-email" data-transfer-contact></span>
+                </span>
+                <span class="badge">Thu ngân</span>
+                <p class="person-branch">Đang trực thuộc: <strong data-transfer-current></strong></p>
+            </div>
+            <div class="field">
+                <label class="field-label" for="transfer-branch">Chi nhánh mới <span class="required">*</span></label>
+                <select class="select" id="transfer-branch" name="branchId" required>
+                    @foreach (var b in Model.Branches)
+                    {
+                        <option value="@b.Id">@b.Name (@b.Address)</option>
+                    }
+                </select>
+                <span class="field-error" data-error-for="branchId"></span>
+            </div>
+            <p class="alert alert-warn" data-transfer-note></p>
+            <p class="field-error" data-error-for=""></p>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>⇄ Chuyển chi nhánh</button>
+        </div>
+    </form>
+</dialog>
+
+@* ------------------------------------------------------------ Xác nhận khóa tài khoản / đặt lại mật khẩu *@
+<dialog class="modal modal-sm modal-confirm" id="confirm-modal" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="modal-head">
+        <span class="lock-icon" aria-hidden="true">🔒</span>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body">
+        <h2 class="modal-title" id="confirm-title" data-confirm-title></h2>
+        <p id="confirm-message" data-confirm-message class="confirm-text"></p>
+        <p class="alert alert-warn" data-confirm-note></p>
+    </div>
+    <div class="modal-foot modal-foot-split">
+        <button type="button" class="btn" data-close>Hủy</button>
+        <button type="button" class="btn btn-danger-solid" data-confirm-ok>Khóa tài khoản</button>
+    </div>
+</dialog>

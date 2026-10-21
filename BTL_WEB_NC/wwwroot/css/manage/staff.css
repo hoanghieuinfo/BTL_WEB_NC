@@ -1,0 +1,123 @@
+/* [AI] Claude hỗ trợ – Phụ lục Z.7 */
+/* MH11 – Nhân viên. Mobile-first theo ảnh "MH11 – Quản lý nhân viên (Mobile 360px)", mốc 768px và 1280px (ảnh chính). */
+
+/* ---------------------------------------------------------------- Đầu trang, bộ lọc */
+
+.staff-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.staff-title { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.staff-action { display: flex; flex-direction: column; gap: 6px; }
+.page-action { width: 100%; }
+
+.staff-filter { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; margin-bottom: 16px; }
+.staff-filter .search-field { grid-column: 1 / -1; position: relative; display: block; }
+.staff-filter .search-field .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.staff-filter .search-field .input { padding-left: 40px; }
+
+/* ---------------------------------------------------------------- Danh sách: < 768px là thẻ */
+
+.staff-panel { padding: 12px; }
+.staff-table, .staff-table tbody { display: block; width: 100%; }
+.staff-table thead { display: none; }
+.staff-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 12px;
+  padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+}
+.staff-row td { display: block; padding: 0; }
+.staff-row .col-person { grid-column: 1 / -1; display: flex; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.staff-row .col-detail { grid-column: 1 / -1; display: flex; justify-content: space-between; font-weight: 600; }
+.staff-row .col-detail::before { content: attr(data-label); font-weight: 400; color: var(--text-2); }
+.staff-row .col-status { display: none; }
+.staff-row .col-actions { grid-column: 1 / -1; padding-top: 4px; }
+.staff-row .row-actions { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; }
+/* Nhân viên đã nghỉ chỉ có nút "Mở khóa" + menu ⋯ → nút trải hai cột */
+.staff-row .row-actions > .btn:first-child:nth-last-child(2) { grid-column: span 2; }
+.readonly-value {
+  display: flex; align-items: center; min-height: var(--tap); padding: 0 12px; border-radius: var(--radius-sm);
+  background: #F6F3F0; color: var(--text-2); overflow-wrap: anywhere;
+}
+.staff-row.is-locked .person-name { color: var(--text-2); }
+
+.person-text { display: flex; flex-direction: column; min-width: 0; }
+.person-name { font-weight: 700; font-size: 15px; }
+.person-email { font-size: 13px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; }
+.status-mobile { margin-top: 4px; }
+
+.avatar-0 { background: #FBE3DA; color: #A5492B; border-color: #F3CDBF; }
+.avatar-1 { background: var(--primary-soft); color: var(--primary); }
+.avatar-2 { background: #FDEBD2; color: #A3620A; border-color: #F5D9AE; }
+.avatar-3 { background: #F7E1E5; color: #8E3A4E; border-color: #EECAD2; }
+.staff-row .avatar { width: 40px; height: 40px; flex: none; }
+
+.branch-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 6px;
+  background: #F7EEE8; color: var(--text-2); font-weight: 500; font-size: 13px;
+}
+.branch-chip::before { content: "▤"; font-size: 11px; }
+.staff-row .col-detail .branch-chip { background: none; padding: 0; color: var(--text); font-weight: 600; font-size: 14px; }
+.staff-row .col-detail .branch-chip::before { content: none; }
+
+/* ---------------------------------------------------------------- Hộp thoại */
+
+.password-body { display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.password-body .field { text-align: left; }
+.success-icon {
+  align-self: center; width: 56px; height: 56px; border-radius: var(--radius); display: grid; place-items: center;
+  background: #BFE6CF; color: var(--primary); font-size: 26px; font-weight: 700;
+}
+.password-value {
+  flex: 1; display: flex; align-items: center; min-height: var(--tap); padding: 0 12px; border-radius: var(--radius-sm);
+  background: #F6F3F0; border: 1px solid var(--border); font-family: ui-monospace, Consolas, monospace; font-size: 17px;
+  letter-spacing: 0.04em; user-select: all;
+}
+.password-body .alert { text-align: left; font-size: 13px; }
+.account-facts {
+  display: grid; grid-template-columns: 1fr; gap: 10px; margin: 0; padding: 12px; border-radius: var(--radius);
+  background: #FBF1EA; text-align: left;
+}
+.account-facts dt { font-size: 12px; color: var(--text-2); }
+.account-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+.person-card {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 12px;
+  padding: 14px; border-radius: var(--radius); background: #FBF1EA;
+}
+.person-card .avatar { width: 44px; height: 44px; }
+.person-branch { grid-column: 1 / -1; margin-top: 8px; padding-top: 10px; border-top: 1px solid #EEDDD2; font-size: 13px; color: var(--text-2); }
+
+.lock-icon {
+  width: 44px; height: 44px; border-radius: var(--radius); display: grid; place-items: center; background: var(--danger-soft);
+}
+.confirm-text { margin: 8px 0 12px; color: var(--text-2); line-height: 1.6; }
+
+/* ================================================================ ≥ 768px – Tablet: bảng */
+
+@media (min-width: 768px) {
+  .staff-head { flex-direction: row; align-items: center; justify-content: space-between; }
+  .staff-title { flex-direction: row; align-items: center; gap: 14px; }
+  .staff-action { align-items: flex-end; text-align: right; max-width: 320px; }
+  .page-action { width: auto; }
+  .staff-filter { grid-template-columns: 1fr 200px 200px; }
+  .staff-filter .search-field { grid-column: auto; }
+
+  .staff-panel { padding: 0; overflow-x: auto; }
+  .staff-table { display: table; border-collapse: collapse; min-width: 900px; }
+  .staff-table thead { display: table-header-group; }
+  .staff-table tbody { display: table-row-group; }
+  .staff-table th {
+    padding: 14px 16px; text-align: left; font-size: 13px; font-weight: 600; color: var(--text-2);
+    background: #FBF1EA; border-bottom: 1px solid var(--border);
+  }
+  .staff-row { display: table-row; margin: 0; padding: 0; border: 0; }
+  .staff-row td { display: table-cell; padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .staff-row .col-person { display: flex; align-items: center; border-bottom: 1px solid var(--border); }
+  .staff-row .col-detail { display: table-cell; font-weight: 400; }
+  .staff-row .col-detail::before { content: none; }
+  .staff-row .col-detail .branch-chip { background: #F7EEE8; padding: 2px 10px; color: var(--text-2); font-weight: 500; font-size: 13px; }
+  .staff-row .col-detail .branch-chip::before { content: "▤"; }
+  .staff-row .col-status { display: table-cell; white-space: nowrap; }
+  .status-mobile { display: none; }
+  .staff-row .row-actions { display: flex; justify-content: flex-end; align-items: center; }
+  .staff-row .avatar { width: 36px; height: 36px; }
+
+  .account-facts { grid-template-columns: repeat(3, 1fr); }
+}
