@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# [AI] Ảnh người dùng tải lên khi chạy app (wwwroot/uploads/{tenantId}/) – dữ liệu chạy, không phải mã nguồn
+BTL_WEB_NC/wwwroot/uploads/
