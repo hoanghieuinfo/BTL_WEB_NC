@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /system/
+Disallow: /manage/
+Disallow: /pos/
+Disallow: /api/
+Disallow: /tai-khoan/
+
+Sitemap: https://app.caphemay.vn/sitemap.xml
