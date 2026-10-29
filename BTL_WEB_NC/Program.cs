@@ -5,6 +5,7 @@ using BTL_WEB_NC.Infrastructure.Ajax;
 using BTL_WEB_NC.Infrastructure.Files;
 using BTL_WEB_NC.Infrastructure.Tenancy;
 using BTL_WEB_NC.Models.Entities;
+using BTL_WEB_NC.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,8 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddSingleton<IImageUploadService>(sp =>
     new ImageUploadService(sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
+
+builder.Services.AddScoped<ITenantRegistrationService, TenantRegistrationService>();
 
 // Identity – chính sách theo Bảng 3.22 (R36).
 builder.Services
