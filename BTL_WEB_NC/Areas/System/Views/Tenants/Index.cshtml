@@ -1,0 +1,263 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@{
+    ViewData["Title"] = "Quản lý Tenant (Quán & Chuỗi)";
+    var plans = ViewBag.Plans as IReadOnlyList<BTL_WEB_NC.Models.Entities.ServicePlan> ?? new List<BTL_WEB_NC.Models.Entities.ServicePlan>();
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Quản lý Tenant (Quán &amp; Chuỗi)</h1>
+        <p class="page-subtitle muted">Danh sách các quán đăng ký sử dụng dịch vụ trên nền tảng SaaS.</p>
+    </div>
+</div>
+
+<!-- Thanh tìm kiếm và bộ lọc (AJAX A03, MH06 Hình 3.16) -->
+<div class="card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 20px;">
+    <form id="filter-form" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <div style="flex: 1; min-width: 240px;">
+            <input type="text" id="filter-keyword" class="input" placeholder="Tìm theo tên quán, slug, số điện thoại..." />
+        </div>
+        <div style="width: 180px;">
+            <select id="filter-status" class="select">
+                <option value="">Trạng thái: Tất cả</option>
+                <option value="0">Chờ kích hoạt</option>
+                <option value="1">Đang hoạt động</option>
+                <option value="2">Bị khóa</option>
+                <option value="3">Từ chối</option>
+            </select>
+        </div>
+        <div style="width: 180px;">
+            <select id="filter-plan" class="select">
+                <option value="">Gói: Tất cả</option>
+                @foreach (var p in plans)
+                {
+                    <option value="@p.Id">@p.Name</option>
+                }
+            </select>
+        </div>
+        <button type="button" id="btn-reset" class="btn btn-secondary">Đặt lại</button>
+    </form>
+</div>
+
+<!-- Vùng chứa danh sách Tenant được nạp qua AJAX -->
+<div id="tenants-container">
+    <div style="text-align: center; padding: 48px 16px; color: var(--muted);">
+        <span class="spinner-sm"></span> Đang tải danh sách quán...
+    </div>
+</div>
+
+<!-- Modal khóa Tenant (Hình 3.17) -->
+<dialog id="modal-lock" class="modal-sm" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0; background: var(--card); box-shadow: var(--shadow-lg);">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--danger);">
+            <span>🔒</span> Khóa hoạt động Tenant
+        </h3>
+        <button type="button" class="icon-btn" onclick="document.getElementById('modal-lock').close();">✕</button>
+    </div>
+    <div style="padding: 20px;">
+        <div style="background: #FEF2F2; border: 1px solid #FEE2E2; color: #991B1B; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px;">
+            ⚠️ <strong>Cảnh báo:</strong> Khi bị khóa, toàn bộ tài khoản thuộc quán này sẽ bị thu hồi phiên đăng nhập ngay lập tức và trang thực đơn công khai sẽ tạm ngừng phục vụ.
+        </div>
+        <p style="font-size: 14px; margin-bottom: 12px;">Quán: <strong id="lock-tenant-name"></strong></p>
+        <div class="form-group">
+            <label class="form-label">Lý do khóa quán <span class="text-danger">*</span></label>
+            <textarea id="lock-reason" class="input" style="height: 80px; resize: none;" placeholder="Nhập lý do khóa quán (lưu vào lịch sử quản trị)..." required></textarea>
+            <span class="field-error" id="lock-reason-error" style="display: none;"></span>
+        </div>
+    </div>
+    <div style="padding: 14px 20px; background: #FAF8F5; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-lock').close();">Hủy</button>
+        <button type="button" id="btn-confirm-lock" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Khóa Tenant</button>
+    </div>
+</dialog>
+
+<!-- Modal đổi gói dịch vụ -->
+<dialog id="modal-plan" class="modal-sm" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0; background: var(--card); box-shadow: var(--shadow-lg);">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📦</span> Đổi gói dịch vụ
+        </h3>
+        <button type="button" class="icon-btn" onclick="document.getElementById('modal-plan').close();">✕</button>
+    </div>
+    <div style="padding: 20px;">
+        <p style="font-size: 14px; margin-bottom: 16px;">Quán: <strong id="plan-tenant-name"></strong></p>
+        <div class="form-group">
+            <label class="form-label">Chọn gói dịch vụ mới</label>
+            <select id="select-change-plan" class="select">
+                @foreach (var p in plans)
+                {
+                    <option value="@p.Id">@p.Name (@p.PricePerMonth.ToString("N0") đ - Tối đa @p.MaxBranches chi nhánh, @p.MaxStaff NV)</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div style="padding: 14px 20px; background: #FAF8F5; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-plan').close();">Hủy</button>
+        <button type="button" id="btn-confirm-plan" class="btn btn-primary">Lưu thay đổi</button>
+    </div>
+</dialog>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var container = document.getElementById('tenants-container');
+            var kwInput = document.getElementById('filter-keyword');
+            var statusSelect = document.getElementById('filter-status');
+            var planSelect = document.getElementById('filter-plan');
+            var btnReset = document.getElementById('btn-reset');
+
+            var modalLock = document.getElementById('modal-lock');
+            var lockTenantName = document.getElementById('lock-tenant-name');
+            var lockReason = document.getElementById('lock-reason');
+            var lockReasonErr = document.getElementById('lock-reason-error');
+            var btnConfirmLock = document.getElementById('btn-confirm-lock');
+            var currentLockId = 0;
+
+            var modalPlan = document.getElementById('modal-plan');
+            var planTenantName = document.getElementById('plan-tenant-name');
+            var selectChangePlan = document.getElementById('select-change-plan');
+            var btnConfirmPlan = document.getElementById('btn-confirm-plan');
+            var currentPlanId = 0;
+
+            var currentPage = 1;
+
+            // Đọc params từ URL nếu có (ví dụ từ Dashboard click sang)
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('status')) {
+                statusSelect.value = urlParams.get('status');
+            }
+
+            // Tải danh sách AJAX (A03)
+            async function loadTenants(page) {
+                currentPage = page || 1;
+                var url = '/system/tenants/list?page=' + currentPage +
+                          '&keyword=' + encodeURIComponent(kwInput.value.trim()) +
+                          '&status=' + encodeURIComponent(statusSelect.value) +
+                          '&planId=' + encodeURIComponent(planSelect.value);
+
+                try {
+                    var html = await Ajax.get(url);
+                    container.innerHTML = html;
+                    bindListEvents();
+                } catch (err) {
+                    container.innerHTML = '<div style="color: var(--danger); padding: 24px; text-align: center;">Không tải được danh sách tenant. Vui lòng thử lại.</div>';
+                }
+            }
+
+            // Gán sự kiện sau khi render Partial View
+            function bindListEvents() {
+                // Phân trang
+                document.querySelectorAll('.page-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        loadTenants(parseInt(this.getAttribute('data-page')));
+                    });
+                });
+
+                // Cập nhật trạng thái trực tiếp (Kích hoạt, Từ chối, Mở khóa)
+                document.querySelectorAll('.btn-action-status').forEach(function (btn) {
+                    btn.addEventListener('click', async function () {
+                        var id = this.getAttribute('data-id');
+                        var status = parseInt(this.getAttribute('data-status'));
+                        var action = status === 1 ? 'kích hoạt' : 'từ chối';
+
+                        if (!confirm('Bạn có chắc chắn muốn ' + action + ' quán này không?')) return;
+
+                        try {
+                            var res = await Ajax.postJson('/system/tenants/' + id + '/status', { status: status });
+                            if (res.success) {
+                                loadTenants(currentPage);
+                            }
+                        } catch (err) {
+                            alert(err.message || 'Thao tác không thành công.');
+                        }
+                    });
+                });
+
+                // Mở Modal Khóa quán
+                document.querySelectorAll('.btn-open-lock').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        currentLockId = this.getAttribute('data-id');
+                        lockTenantName.textContent = this.getAttribute('data-name');
+                        lockReason.value = '';
+                        lockReasonErr.style.display = 'none';
+                        modalLock.showModal();
+                    });
+                });
+
+                // Mở Modal Đổi gói
+                document.querySelectorAll('.btn-open-plan').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        currentPlanId = this.getAttribute('data-id');
+                        planTenantName.textContent = this.getAttribute('data-name');
+                        selectChangePlan.value = this.getAttribute('data-plan');
+                        modalPlan.showModal();
+                    });
+                });
+            }
+
+            // Xử lý xác nhận Khóa quán (A04)
+            btnConfirmLock.addEventListener('click', async function () {
+                var reason = lockReason.value.trim();
+                if (!reason) {
+                    lockReasonErr.textContent = 'Vui lòng nhập lý do khóa quán.';
+                    lockReasonErr.style.display = 'block';
+                    return;
+                }
+
+                btnConfirmLock.disabled = true;
+                try {
+                    var res = await Ajax.postJson('/system/tenants/' + currentLockId + '/status', {
+                        status: 2, // Locked
+                        lockReason: reason
+                    });
+                    if (res.success) {
+                        modalLock.close();
+                        loadTenants(currentPage);
+                    }
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi khóa quán.');
+                } finally {
+                    btnConfirmLock.disabled = false;
+                }
+            });
+
+            // Xử lý xác nhận Đổi gói (A05)
+            btnConfirmPlan.addEventListener('click', async function () {
+                btnConfirmPlan.disabled = true;
+                try {
+                    var res = await Ajax.postJson('/system/tenants/' + currentPlanId + '/plan', {
+                        planId: parseInt(selectChangePlan.value)
+                    });
+                    if (res.success) {
+                        modalPlan.close();
+                        loadTenants(currentPage);
+                    }
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi đổi gói.');
+                } finally {
+                    btnConfirmPlan.disabled = false;
+                }
+            });
+
+            // Sự kiện tìm kiếm & lọc
+            var debounceTimer;
+            kwInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () { loadTenants(1); }, 300);
+            });
+
+            statusSelect.addEventListener('change', function () { loadTenants(1); });
+            planSelect.addEventListener('change', function () { loadTenants(1); });
+
+            btnReset.addEventListener('click', function () {
+                kwInput.value = '';
+                statusSelect.value = '';
+                planSelect.value = '';
+                loadTenants(1);
+            });
+
+            // Tải lần đầu
+            loadTenants(1);
+        });
+    </script>
+}
