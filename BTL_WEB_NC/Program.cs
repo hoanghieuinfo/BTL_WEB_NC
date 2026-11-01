@@ -1,5 +1,6 @@
 // [AI] Claude hỗ trợ – Phụ lục Z.7
 using BTL_WEB_NC.Areas.Manage.Services;
+using BTL_WEB_NC.Areas.System.Services;
 using BTL_WEB_NC.Data;
 using BTL_WEB_NC.Infrastructure.Ajax;
 using BTL_WEB_NC.Infrastructure.Files;
@@ -51,6 +52,8 @@ builder.Services.AddSingleton<IImageUploadService>(sp =>
     new ImageUploadService(sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 
 builder.Services.AddScoped<ITenantRegistrationService, TenantRegistrationService>();
+builder.Services.AddScoped<ISystemTenantService, SystemTenantService>();
+builder.Services.AddScoped<ISystemPlanService, SystemPlanService>();
 
 // Identity – chính sách theo Bảng 3.22 (R36).
 builder.Services
@@ -125,6 +128,11 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthorization();
+
+app.MapAreaControllerRoute(
+    name: "system",
+    areaName: "System",
+    pattern: "system/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapAreaControllerRoute(
     name: "manage",
