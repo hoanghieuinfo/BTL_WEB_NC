@@ -1,5 +1,7 @@
 // [AI] Claude hỗ trợ – Phụ lục Z.7
 using BTL_WEB_NC.Areas.Manage.Services;
+using BTL_WEB_NC.Areas.Pos.Services;
+using BTL_WEB_NC.Areas.Public.Services;
 using BTL_WEB_NC.Data;
 using BTL_WEB_NC.Infrastructure.Ajax;
 using BTL_WEB_NC.Infrastructure.Files;
@@ -46,6 +48,15 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IInventoryDeductionService, InventoryDeductionService>(); // Việc 12 – Module 3 gọi ở A16
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+// Service của Area Pos (bán hàng) – MH14 Sơ đồ bàn, A10 trạng thái bàn, MH15 đơn hàng.
+builder.Services.AddScoped<ITableMapService, TableMapService>();
+builder.Services.AddScoped<IOrderService, OrderService>(); // A12–A15, A29, A30
+builder.Services.AddScoped<IPaymentService, PaymentService>(); // A16 thanh toán + trừ kho (gọi IInventoryDeductionService trong transaction)
+builder.Services.AddScoped<IMenuService, MenuService>(); // A11 tìm, lọc món khi bán
+
+// Service của Area Public – MH04 thực đơn công khai, robots.txt, sitemap.xml.
+builder.Services.AddScoped<IPublicMenuService, PublicMenuService>();
 builder.Services.AddSingleton<IImageUploadService>(sp =>
     new ImageUploadService(sp.GetRequiredService<IWebHostEnvironment>().WebRootPath));
 

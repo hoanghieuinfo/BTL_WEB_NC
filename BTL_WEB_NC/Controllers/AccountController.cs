@@ -86,10 +86,14 @@ public class AccountController : Controller
             return LocalRedirect(returnUrl);
         }
 
-        // R02: chuyển tới giao diện theo vai trò. Pos và System thuộc module khác, tạm về trang chủ.
+        // R02: chuyển tới giao diện theo vai trò. System thuộc module khác, tạm về trang chủ.
         if (await _userManager.IsInRoleAsync(user, AppRoles.TenantAdmin))
         {
             return Redirect("/manage");
+        }
+        if (await _userManager.IsInRoleAsync(user, AppRoles.Staff))
+        {
+            return Redirect("/pos");
         }
         return RedirectToAction("Index", "Home");
     }

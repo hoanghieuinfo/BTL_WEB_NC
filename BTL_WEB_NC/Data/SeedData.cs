@@ -129,6 +129,8 @@ public static class SeedData
             AddProduct(db, t, cats[4], "Khoai tây chiên", 30_000, ing, ("Khoai tây chiên", 150)),
             AddProduct(db, t, cats[4], "Combo khoai tây & trà đen", 50_000, ing, ("Khoai tây chiên", 150), ("Trà đen", 8), ("Đường", 15), ("Đá viên", 150)),
         };
+        // Ảnh món: wwwroot/images/menu/NN.jpg, NN = số thứ tự món (1–15). Món 5 và 15 chưa có ảnh.
+        SetMenuImages(products, 1, new[] { 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14 });
         products.Single(p => p.Name == "Sinh tố bơ").IsAvailable = false; // Ngừng bán
 
         // Tồn kho: đủ ở hầu hết; Cầu Giấy có Đào ngâm dưới mức và Bánh croissant âm (R19).
@@ -203,6 +205,8 @@ public static class SeedData
             AddProduct(db, t, cats[1], "Trà chanh", 20_000, ing, ("Trà đen", 5), ("Chanh", 0.5m), ("Đường", 20), ("Đá viên", 150)),
             AddProduct(db, t, cats[2], "Trân châu thêm", 8_000, ing, ("Trân châu", 50)),
         };
+        // Ảnh món của Trà Gió: số thứ tự 16–21. Món 17 và 18 chưa có ảnh.
+        SetMenuImages(products, 16, new[] { 16, 19, 20, 21 });
 
         AddStocks(db, t, thanhXuan, ing, now, factor: 2);
         await db.SaveChangesAsync();
@@ -221,7 +225,8 @@ public static class SeedData
     private static Branch NewBranch(int tenantId, string name, string slug, string address, string phone) => new()
     {
         TenantId = tenantId, Name = name, Slug = slug, Address = address, Phone = phone,
-        OpenTime = new TimeOnly(7, 0), CloseTime = new TimeOnly(22, 0), IsActive = true
+        OpenTime = new TimeOnly(7, 0), CloseTime = new TimeOnly(22, 0), IsActive = true,
+        Code = BranchCode.FromName(name)
     };
 
     private static List<DiningTable> AddZones(AppDbContext db, int tenantId, Branch branch, params (string Name, int Tables)[] zones)
@@ -266,6 +271,22 @@ public static class SeedData
             .ToList();
         db.Categories.AddRange(categories);
         return categories;
+    }
+
+    /// <summary>
+    /// Gán ImagePath = /images/menu/NN.jpg cho các món có ảnh. Món thứ i trong danh sách có số thứ tự firstNumber + i;
+    /// chỉ những số liệt kê trong available mới được gán.
+    /// </summary>
+    private static void SetMenuImages(List<Product> products, int firstNumber, int[] available)
+    {
+        for (var i = 0; i < products.Count; i++)
+        {
+            var number = firstNumber + i;
+            if (available.Contains(number))
+            {
+                products[i].ImagePath = $"/images/menu/{number:00}.jpg";
+            }
+        }
     }
 
     private static Product AddProduct(AppDbContext db, int tenantId, Category category, string name, decimal price,

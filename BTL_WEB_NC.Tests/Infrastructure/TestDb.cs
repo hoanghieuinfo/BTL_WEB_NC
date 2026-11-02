@@ -45,6 +45,9 @@ public sealed class TestDb : IDisposable
     public AppDbContext CreateContext(int? tenantId) =>
         new TestAppDbContext(_options, new TenantContext { TenantId = tenantId });
 
+    /// <summary>Dùng khi service cần chia sẻ cùng TenantContext với DbContext (vd. PublicMenuService gán tenant theo slug).</summary>
+    public AppDbContext CreateContextFor(TenantContext tenant) => new TestAppDbContext(_options, tenant);
+
     public void Dispose() => _connection.Dispose();
 }
 

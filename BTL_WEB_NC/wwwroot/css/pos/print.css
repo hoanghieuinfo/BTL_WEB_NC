@@ -1,0 +1,51 @@
+/* [AI] Claude hỗ trợ – Phụ lục Z.7 */
+/* MH16 – phiếu tạm tính và hóa đơn BM06, khổ giấy nhiệt 80mm. Trên màn hình: tờ phiếu căn giữa trên nền xám + thanh công cụ.
+   Khi in: chỉ còn tờ phiếu, rộng 80mm, không lề. Màu chỉ là đen/trắng để in nhiệt rõ nét. */
+
+body.print-page { background: #e9e7e3; margin: 0; padding: 12px 8px 32px; color: #000; }
+
+.print-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 80mm; margin: 0 auto 12px; }
+.print-tools .btn { min-height: var(--tap); }
+
+.slip {
+  width: 80mm; max-width: 100%; margin: 0 auto; padding: 6mm 4mm; box-sizing: border-box;
+  background: #fff; color: #000; font-size: 12px; line-height: 1.4;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+.slip p, .slip dl, .slip dd, .slip ol { margin: 0; padding: 0; }
+
+.slip-head { text-align: center; }
+.slip-shop { font-size: 16px; font-weight: 700; }
+.slip-branch { font-weight: 600; }
+.slip-addr { font-size: 11px; }
+.slip-title { margin: 8px 0 0; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+.slip-note { font-size: 11px; font-style: italic; }
+
+.slip-facts { margin: 8px 0; padding: 6px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
+.slip-facts > div, .slip-total > div { display: flex; justify-content: space-between; gap: 8px; }
+.slip-facts dt { flex: none; }
+.slip-facts dd { text-align: right; overflow-wrap: anywhere; }
+
+.slip-lines { list-style: none; }
+.slip-line { padding: 4px 0; border-bottom: 1px dotted #777; break-inside: avoid; }
+.slip-line-name { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.slip-line-note { display: block; font-size: 11px; font-style: italic; overflow-wrap: anywhere; }
+.slip-line-calc { display: flex; justify-content: space-between; gap: 8px; }
+.slip-line-amount { font-weight: 600; }
+
+.slip-total { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #000; }
+.slip-total dt { flex: none; }
+.slip-total dd { text-align: right; overflow-wrap: anywhere; }
+.slip-reason { font-size: 11px; font-style: italic; }
+.slip-grand { margin: 4px 0; padding: 4px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; font-size: 14px; font-weight: 700; }
+
+.slip-foot { margin-top: 10px; text-align: center; font-size: 11px; }
+
+@page { size: 80mm auto; margin: 0; }
+
+@media print {
+  html, body { width: 80mm; }
+  body.print-page { background: #fff; padding: 0; }
+  .print-tools { display: none !important; }
+  .slip { width: 80mm; padding: 4mm; box-shadow: none; }
+}
