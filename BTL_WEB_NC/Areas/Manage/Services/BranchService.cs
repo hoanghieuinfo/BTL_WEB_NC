@@ -5,6 +5,7 @@ using BTL_WEB_NC.Areas.Manage.Models;
 using BTL_WEB_NC.Data;
 using BTL_WEB_NC.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using BTL_WEB_NC.Infrastructure;
 
 namespace BTL_WEB_NC.Areas.Manage.Services;
 
@@ -102,6 +103,7 @@ public class BranchService : IBranchService
         await EnsureUniqueBranchAsync(name, slug, exceptId: null, ct);
 
         var branch = new Branch(); // TenantId gán tự động khi lưu
+        branch.Code = BranchCode.FromName(name);
         Apply(branch, model, name, slug);
         _db.Branches.Add(branch);
         await SaveBranchAsync(name, slug, exceptId: null, ct);

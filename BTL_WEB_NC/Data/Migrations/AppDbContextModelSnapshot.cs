@@ -129,6 +129,12 @@ namespace BTL_WEB_NC.Data.Migrations
                     b.Property<TimeOnly>("CloseTime")
                         .HasColumnType("time");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
