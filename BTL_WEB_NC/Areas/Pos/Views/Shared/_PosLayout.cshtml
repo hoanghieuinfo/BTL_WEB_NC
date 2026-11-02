@@ -1,0 +1,60 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var title = ViewData["Title"] as string ?? "Bán hàng";
+    var tenantName = ViewData["TenantName"] as string ?? "";
+    var branchName = ViewData["BranchName"] as string ?? "";
+    var fullName = User.FindFirst(TenantClaimTypes.FullName)?.Value ?? "";
+    var nav = ViewData["Nav"] as string ?? "tables";   // trang con (ví dụ đơn hàng) đặt "orders" để không tô sáng Sơ đồ bàn
+    var navTables = nav == "tables";
+    var navInvoices = nav == "invoices";
+    var shopLabel = string.IsNullOrEmpty(tenantName) ? "Cafe SaaS" : tenantName;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <title>@title – @shopLabel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pos/pos.css" asp-append-version="true" />
+</head>
+<body class="pos">
+    <a class="skip-link" href="#main">Bỏ qua thanh điều hướng</a>
+
+    <header class="pos-bar">
+        <a class="pos-brand" href="/pos">
+            <span class="pos-brand-name">@shopLabel</span>
+            @if (!string.IsNullOrEmpty(branchName))
+            {
+                <span class="pos-brand-branch">@branchName</span>
+            }
+        </a>
+        <nav class="pos-nav" aria-label="Điều hướng bán hàng">
+            <a href="/pos" aria-current="@(navTables ? "page" : null)">Sơ đồ bàn</a>
+            <a href="/pos/invoices" aria-current="@(navInvoices ? "page" : null)">Hóa đơn</a>
+        </nav>
+        <div class="pos-user">
+            <span class="pos-user-name">@fullName</span>
+            <form method="post" asp-area="" asp-controller="Account" asp-action="Logout">
+                <button type="submit" class="btn btn-sm">Đăng xuất</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="pos-main" id="main">
+        @RenderBody()
+    </main>
+
+    <div class="toast-region" id="toast-region" role="status" aria-live="polite"></div>
+
+    <script src="~/js/ajax.js" asp-append-version="true"></script>
+    <script src="~/js/pos/common.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

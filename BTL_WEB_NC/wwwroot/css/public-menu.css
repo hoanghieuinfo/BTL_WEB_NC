@@ -1,0 +1,30 @@
+/* [AI] Claude hỗ trợ – Phụ lục Z.7 */
+/* MH04 thực đơn công khai. Mobile-first: 360px mặc định, mốc 768px và 1280px; vùng chạm >= 44px (R34). */
+:root { --primary:#2F6B4F; --text:#201B18; --text-2:#5E5753; --bg:#F6F7F5; --card:#FFFFFF; --border:#E4E2DE; }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin:0; font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       font-size:15px; line-height:1.5; color:var(--text); background:var(--bg); }
+img { max-width:100%; display:block; }
+.pm-header, main, .pm-cats { max-width:960px; margin-inline:auto; padding-inline:16px; }
+.pm-header { padding-block:20px 8px; }
+.pm-header h1 { font-size:22px; margin:0 0 8px; line-height:1.25; }
+.pm-info { list-style:none; margin:0; padding:0; color:var(--text-2); }
+.pm-info a { color:var(--primary); display:inline-flex; align-items:center; min-height:44px; }
+.pm-cats { display:flex; gap:8px; overflow-x:auto; position:sticky; top:0; z-index:1; background:var(--bg); padding-block:8px; }
+.pm-cats a { flex:none; min-height:44px; display:inline-flex; align-items:center; padding:0 16px;
+             border:1px solid var(--border); border-radius:999px; background:var(--card);
+             color:var(--text); text-decoration:none; }
+.pm-section { scroll-margin-top:64px; }
+.pm-section h2 { font-size:18px; margin:20px 0 10px; }
+.pm-grid { list-style:none; margin:0; padding:0; display:grid; gap:12px; grid-template-columns:1fr; }
+.pm-item { display:flex; gap:12px; padding:12px; background:var(--card); border:1px solid var(--border); border-radius:12px; }
+.pm-item img, .pm-noimg { width:96px; height:96px; flex:none; border-radius:8px; object-fit:cover; background:var(--border); }
+.pm-item h3 { font-size:15px; margin:0 0 4px; }
+.pm-item p { margin:0; color:var(--text-2); font-size:13px; }
+.pm-item .pm-price { color:var(--primary); font-weight:700; font-size:15px; margin-top:6px; }
+.pm-empty { color:var(--text-2); padding-block:24px; }
+.pm-message { padding-block:48px; text-align:center; }
+.pm-message h1 { font-size:22px; margin:0 0 8px; }
+.pm-message p { color:var(--text-2); }
+@media (min-width:768px)  { .pm-grid { grid-template-columns:repeat(2,1fr); } .pm-header h1 { font-size:28px; } }
+@media (min-width:1280px) { .pm-header, main, .pm-cats { padding-inline:0; } }

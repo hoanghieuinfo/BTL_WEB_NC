@@ -1,0 +1,353 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH15 – Đơn hàng tại bàn (UC15). Đầu phiếu BM05 + danh sách món (chỉ đọc) + thực đơn tìm/lọc (A11).
+   Chọn món (A11) đã có ở #menu-panel; thêm/sửa món (A13), hủy món (A14), chuyển/gộp bàn (A15), tạm tính (A29), hủy đơn (A30), thanh toán (A16) gắn vào các vùng
+   #menu-panel và #order-actions ở các bước sau. Mọi dữ liệu in ra qua Razor nên đã được mã hóa HTML. *@
+@model OrderDetailDto
+@using System.Globalization
+@{
+    ViewData["Title"] = "Đơn " + Model.TableName;
+    ViewData["Nav"] = "orders";
+
+    var vn = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal v) => v.ToString("N0", vn) + " đ";
+
+    // Đơn còn mở mà bàn đã in tạm tính → Chờ thanh toán; đơn đã đóng thì hiện trạng thái của đơn.
+    var (statusText, statusClass) = Model.Status switch
+    {
+        OrderStatus.Paid => ("Đã thanh toán", "st-done"),
+        OrderStatus.Cancelled => ("Đã hủy", "st-cancel"),
+        _ => Model.TableStatus == TableStatus.AwaitingPayment ? ("Chờ thanh toán", "st-2") : ("Đang phục vụ", "st-1")
+    };
+    var activeLines = Model.Lines.Where(l => !l.IsCancelled).ToList();
+}
+
+<nav class="crumb" aria-label="Điều hướng phụ">
+    <a href="/pos">← Sơ đồ bàn</a>
+</nav>
+
+<div id="order-app" data-order-id="@Model.Id" data-table-id="@Model.TableId" data-row-version="@Model.RowVersion" data-subtotal="@Model.SubTotal.ToString("0", CultureInfo.InvariantCulture)" data-open="@(Model.IsOpen ? "true" : "false")">
+
+    @* ---------------------------------------------------------- Đầu phiếu (BM05) *@
+    <header class="order-head">
+        <div class="order-title">
+            <h1><span id="order-table">@Model.TableName</span> <span class="order-zone" id="order-zone">@Model.ZoneName</span></h1>
+            <span class="status-pill @statusClass" id="order-status">@statusText</span>
+        </div>
+        <dl class="order-facts">
+            <div><dt>Mã đơn</dt><dd>@Model.Code</dd></div>
+            <div><dt>Giờ vào</dt><dd>@Model.CreatedAt.ToString("HH:mm dd/MM/yyyy")</dd></div>
+            <div><dt>Số khách</dt><dd>@(Model.GuestCount?.ToString() ?? "–")</dd></div>
+            <div><dt>Nhân viên</dt><dd>@Model.StaffName</dd></div>
+        </dl>
+    </header>
+
+    @if (!Model.IsOpen)
+    {
+        <div class="alert alert-warn" role="status">
+            Đơn này @(Model.Status == OrderStatus.Paid ? "đã được thanh toán" : "đã bị hủy"), chỉ xem được, không sửa.
+        </div>
+    }
+
+    <div class="order-layout">
+        @* ---------------------------------------------------------- Chọn món (A11, R24) *@
+        <section class="panel" id="menu-panel" aria-labelledby="menu-title">
+            <h2 id="menu-title">Thực đơn</h2>
+
+            @if (!Model.IsOpen)
+            {
+                <div class="state state-soft">
+                    <p class="state-title">Không thể gọi thêm món</p>
+                    <p>Đơn đã đóng nên thực đơn bị khóa.</p>
+                </div>
+            }
+            else
+            {
+                <div class="menu-tools">
+                    <label class="search-field" for="menu-q">
+                        <span class="visually-hidden">Tìm món</span>
+                        <span class="icon" aria-hidden="true">⌕</span>
+                        <input class="input" id="menu-q" type="search" maxlength="100" autocomplete="off"
+                               placeholder="Tìm món (ví dụ: ca phe, tra dao)" />
+                    </label>
+                    <div class="menu-cats" id="menu-cats" role="group" aria-label="Lọc theo danh mục"></div>
+                </div>
+
+                <div class="menu-grid skeleton-menu" id="menu-loading" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <ul class="menu-grid" id="menu-grid" aria-live="polite" hidden></ul>
+                <div class="state state-soft" id="menu-empty" hidden>
+                    <p class="state-title">Không có món phù hợp</p>
+                    <p>Thử từ khóa khác hoặc chọn danh mục khác.</p>
+                </div>
+                <div class="state state-error" id="menu-error" hidden>
+                    <p class="state-title">Không tải được thực đơn</p>
+                    <button type="button" class="btn btn-primary" id="menu-retry">Thử lại</button>
+                </div>
+            }
+        </section>
+
+        @* ---------------------------------------------------------- Đơn hiện tại *@
+        @* #order-lines-box do order-panel.js vẽ lại sau mỗi thao tác (A13…); cấu trúc DOM phải khớp với hàm renderLines. *@
+        <section class="panel" id="order-panel" aria-labelledby="order-title">
+            <h2 id="order-title">Đơn hiện tại <span class="count" id="order-count">(@activeLines.Count món)</span></h2>
+
+            <div id="order-lines-box">
+                @if (Model.Lines.Count == 0)
+                {
+                    <div class="state state-soft" id="order-empty">
+                        <p class="state-title">Chưa có món nào</p>
+                        <p>Chọn món bên cạnh để bắt đầu gọi.</p>
+                    </div>
+                }
+                else
+                {
+                    <ol class="line-list" id="order-lines">
+                        @foreach (var line in Model.Lines)
+                        {
+                            <li class="line @(line.IsCancelled ? "is-cancelled" : "")" data-line-id="@line.Id"
+                                data-name="@line.ProductName" data-qty="@line.Quantity" data-note="@line.Note">
+                                <div class="line-main">
+                                    <span class="line-name">@line.ProductName</span>
+                                    @if (!string.IsNullOrWhiteSpace(line.Note))
+                                    {
+                                        <span class="line-note">@line.Note</span>
+                                    }
+                                    @if (line.IsCancelled)
+                                    {
+                                        <span class="line-cancel">Đã hủy@(string.IsNullOrWhiteSpace(line.CancelReason) ? "" : ": " + line.CancelReason)</span>
+                                    }
+                                </div>
+                                <span class="line-qty">× @line.Quantity</span>
+                                <span class="line-amount">@Money(line.Amount)</span>
+                                <span class="line-actions">
+                                    @if (Model.IsOpen && !line.IsCancelled)
+                                    {
+                                        <button type="button" class="btn btn-sm" data-edit-line="@line.Id" aria-label="Sửa món @line.ProductName">Sửa</button>
+                                        <button type="button" class="btn btn-sm btn-danger" data-cancel-line="@line.Id" aria-label="Hủy món @line.ProductName">Hủy</button>
+                                    }
+                                </span>
+                            </li>
+                        }
+                    </ol>
+                }
+            </div>
+
+            <dl class="order-sum">
+                <div><dt>Tạm tính</dt><dd id="sum-subtotal">@Money(Model.SubTotal)</dd></div>
+                <div id="sum-discount-row" @(Model.Discount > 0 ? "" : "hidden")><dt>Giảm giá</dt><dd id="sum-discount">− @Money(Model.Discount)</dd></div>
+                <div class="sum-total"><dt>Tổng cộng</dt><dd id="sum-total">@Money(Model.Total)</dd></div>
+            </dl>
+
+            @* Hủy món nằm ở từng dòng (A14). Ở đây: Thanh toán (A16), Tạm tính (A29), Chuyển/gộp bàn (A15), Hủy đơn (A30). *@
+            <div class="order-actions" id="order-actions">
+                @if (Model.IsOpen)
+                {
+                    <button type="button" class="btn btn-primary" id="pay-open">Thanh toán</button>
+                    <button type="button" class="btn" id="provisional-open">Tạm tính</button>
+                    <button type="button" class="btn" id="move-open">Chuyển / gộp bàn</button>
+                    <button type="button" class="btn btn-danger" id="order-cancel-open">Hủy đơn</button>
+                }
+                else if (Model.Status == OrderStatus.Paid)
+                {
+                    <a class="btn btn-primary" href="/pos/orders/@Model.Id/print">In lại hóa đơn</a>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+@if (Model.IsOpen)
+{
+    @* Hộp thoại số lượng + ghi chú (BM05) dùng cho cả thêm món mới và sửa dòng đã có (A13). *@
+    <dialog class="modal modal-sm" id="item-modal" aria-labelledby="item-modal-title">
+        <form id="item-form" class="modal-form" novalidate>
+            <div class="modal-head">
+                <div>
+                    <h2 class="modal-title" id="item-modal-title">Thêm món</h2>
+                    <p class="modal-subtitle" id="item-modal-sub"></p>
+                </div>
+                <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+            </div>
+            <div class="modal-body form">
+                <div class="field">
+                    <label class="field-label" for="item-qty">Số lượng</label>
+                    <div class="qty-stepper">
+                        <button type="button" class="btn btn-icon" id="qty-minus" aria-label="Giảm số lượng">−</button>
+                        <input class="input" id="item-qty" name="quantity" type="number" inputmode="numeric" min="1" max="99" step="1" value="1" />
+                        <button type="button" class="btn btn-icon" id="qty-plus" aria-label="Tăng số lượng">+</button>
+                    </div>
+                    <span class="field-hint">Muốn bỏ món, hãy dùng nút Hủy ở dòng món (có ghi lý do).</span>
+                    <span class="field-error" data-error-for="quantity"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="item-note">Ghi chú</label>
+                    <input class="input" id="item-note" name="note" maxlength="100" autocomplete="off" placeholder="Ví dụ: ít đá, ít đường" />
+                    <span class="field-error" data-error-for="note"></span>
+                    <span class="field-error" data-error-for="productId"></span>
+                    <span class="field-error" data-error-for="itemId"></span>
+                    <span class="field-error" data-error-for=""></span>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-close>Hủy</button>
+                <button type="submit" class="btn btn-primary" id="item-submit">Thêm vào đơn</button>
+            </div>
+        </form>
+    </dialog>
+
+    @* Hộp thoại hủy món (A14, R25): bắt buộc lý do; dòng được giữ lại và gạch ngang, không tính tiền, không trừ kho. *@
+    <dialog class="modal modal-sm" id="cancel-modal" aria-labelledby="cancel-modal-title">
+        <form id="cancel-form" class="modal-form" novalidate>
+            <div class="modal-head">
+                <div>
+                    <h2 class="modal-title" id="cancel-modal-title">Hủy món</h2>
+                    <p class="modal-subtitle" id="cancel-modal-sub"></p>
+                </div>
+                <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+            </div>
+            <div class="modal-body form">
+                <div class="field">
+                    <label class="field-label" for="cancel-reason">Lý do hủy <span aria-hidden="true">*</span></label>
+                    <input class="input" id="cancel-reason" name="reason" maxlength="255" autocomplete="off" required
+                           placeholder="Ví dụ: khách đổi ý, nhầm món" />
+                    <span class="field-hint">Món vẫn hiện trong đơn nhưng không tính tiền.</span>
+                    <span class="field-error" data-error-for="reason"></span>
+                    <span class="field-error" data-error-for=""></span>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-close>Giữ món</button>
+                <button type="submit" class="btn btn-danger-solid" id="cancel-submit">Hủy món</button>
+            </div>
+        </form>
+    </dialog>
+
+    @* Hộp thoại thanh toán (A16, UC16, R26): tổng tiền hàng, giảm giá + lý do, hình thức, tiền khách đưa; JS tính sẵn tiền thừa.
+       Mọi con số chỉ để hiển thị: server tự tính lại tổng từ CSDL và kiểm tra lại toàn bộ ràng buộc. *@
+    <dialog class="modal modal-sm" id="pay-modal" aria-labelledby="pay-modal-title">
+        <form id="pay-form" class="modal-form" novalidate>
+            <div class="modal-head">
+                <div>
+                    <h2 class="modal-title" id="pay-modal-title">Thanh toán</h2>
+                    <p class="modal-subtitle">@Model.TableName • @Model.Code</p>
+                </div>
+                <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+            </div>
+            <div class="modal-body form">
+                <dl class="order-sum pay-sum">
+                    <div><dt>Tổng tiền hàng</dt><dd id="pay-subtotal">@Money(Model.SubTotal)</dd></div>
+                    <div class="sum-total"><dt>Phải trả</dt><dd id="pay-total">@Money(Model.SubTotal)</dd></div>
+                </dl>
+
+                <div class="field">
+                    <label class="field-label" for="pay-discount">Giảm giá (đ)</label>
+                    <input class="input" id="pay-discount" name="discount" inputmode="numeric" autocomplete="off" placeholder="0" />
+                    <span class="field-error" data-error-for="discount"></span>
+                </div>
+                <div class="field" id="pay-reason-field" hidden>
+                    <label class="field-label" for="pay-reason">Lý do giảm giá <span aria-hidden="true">*</span></label>
+                    <input class="input" id="pay-reason" name="discountReason" maxlength="255" autocomplete="off" placeholder="Ví dụ: khách quen, voucher" />
+                    <span class="field-error" data-error-for="discountReason"></span>
+                </div>
+
+                <div class="field">
+                    <span class="field-label" id="pay-method-label">Hình thức thanh toán</span>
+                    <div class="menu-cats" role="group" aria-labelledby="pay-method-label">
+                        <button type="button" class="chip is-active" data-pay-method="0" aria-pressed="true">Tiền mặt</button>
+                        <button type="button" class="chip" data-pay-method="1" aria-pressed="false">Chuyển khoản</button>
+                    </div>
+                    <span class="field-error" data-error-for="method"></span>
+                </div>
+
+                <div class="field" id="pay-cash-field">
+                    <label class="field-label" for="pay-cash">Tiền khách đưa (đ)</label>
+                    <input class="input" id="pay-cash" name="cashReceived" inputmode="numeric" autocomplete="off" />
+                    <span class="field-hint pay-change" id="pay-change" aria-live="polite"></span>
+                    <span class="field-error" data-error-for="cashReceived"></span>
+                </div>
+                <span class="field-error" data-error-for="rowVersion"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-close>Đóng</button>
+                <button type="submit" class="btn btn-primary" id="pay-submit">Xác nhận thanh toán</button>
+            </div>
+        </form>
+    </dialog>
+
+    @* Hộp thoại hủy đơn (A30, R25): đơn đã có món thì bắt buộc lý do (trình duyệt kiểm tra trước, server kiểm tra lại); đơn chưa có món hủy không cần lý do. *@
+    <dialog class="modal modal-sm" id="cancel-order-modal" aria-labelledby="cancel-order-title">
+        <form id="cancel-order-form" class="modal-form" novalidate>
+            <div class="modal-head">
+                <div>
+                    <h2 class="modal-title" id="cancel-order-title">Hủy đơn</h2>
+                    <p class="modal-subtitle">@Model.TableName • @Model.Code</p>
+                </div>
+                <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+            </div>
+            <div class="modal-body form">
+                <div class="field">
+                    <label class="field-label" for="cancel-order-reason">Lý do hủy <span aria-hidden="true" id="cancel-order-star">*</span></label>
+                    <input class="input" id="cancel-order-reason" name="reason" maxlength="255" autocomplete="off"
+                           placeholder="Ví dụ: khách rời đi, đặt nhầm bàn" />
+                    <span class="field-hint" id="cancel-order-hint">Đơn đã có món nên cần ghi lý do. Đơn đóng lại và bàn về Trống, không hoàn tác được.</span>
+                    <span class="field-error" data-error-for="reason"></span>
+                    <span class="field-error" data-error-for=""></span>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-close>Giữ đơn</button>
+                <button type="submit" class="btn btn-danger-solid" id="cancel-order-submit">Hủy đơn</button>
+            </div>
+        </form>
+    </dialog>
+
+    @* Hộp thoại chuyển / gộp bàn (A15, R25). Danh sách bàn lấy từ A10 (/pos/tables/status) rồi lọc ở trình duyệt; server kiểm tra lại. *@
+    <dialog class="modal modal-lg" id="move-modal" aria-labelledby="move-modal-title">
+        <form id="move-form" class="modal-form" novalidate>
+            <div class="modal-head">
+                <div>
+                    <h2 class="modal-title" id="move-modal-title">Chuyển / gộp bàn</h2>
+                    <p class="modal-subtitle">Đang ở <strong id="move-from"></strong></p>
+                </div>
+                <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+            </div>
+            <div class="modal-body form">
+                <div class="menu-cats" role="group" aria-label="Chọn thao tác">
+                    <button type="button" class="chip is-active" data-move-mode="transfer" aria-pressed="true">Chuyển sang bàn trống</button>
+                    <button type="button" class="chip" data-move-mode="merge" aria-pressed="false">Gộp vào bàn đang có khách</button>
+                </div>
+                <p class="field-hint" id="move-hint"></p>
+
+                <div class="menu-grid skeleton-menu" id="move-loading" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div id="move-zones" aria-live="polite" hidden></div>
+                <div class="state state-soft" id="move-empty" hidden>
+                    <p class="state-title" id="move-empty-title"></p>
+                </div>
+                <div class="state state-error" id="move-error" hidden>
+                    <p class="state-title">Không tải được sơ đồ bàn</p>
+                    <button type="button" class="btn btn-primary" id="move-retry">Thử lại</button>
+                </div>
+                <span class="field-error" data-error-for="targetTableId"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+            <div class="modal-foot">
+                <span class="modal-status" id="move-picked" aria-live="polite"></span>
+                <button type="button" class="btn" data-close>Đóng</button>
+                <button type="submit" class="btn btn-primary" id="move-submit" disabled>Chuyển bàn</button>
+            </div>
+        </form>
+    </dialog>
+}
+
+@section Scripts {
+    @if (Model.IsOpen)
+    {
+        <script src="~/js/pos/order-panel.js" asp-append-version="true"></script>
+        <script src="~/js/pos/order-move.js" asp-append-version="true"></script>
+        <script src="~/js/pos/order-close.js" asp-append-version="true"></script>
+        <script src="~/js/pos/order-pay.js" asp-append-version="true"></script>
+        <script src="~/js/pos/order.js" asp-append-version="true"></script>
+    }
+}

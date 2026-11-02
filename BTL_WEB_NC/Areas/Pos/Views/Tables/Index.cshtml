@@ -1,0 +1,59 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@{
+    ViewData["Title"] = "Sơ đồ bàn";
+}
+<div class="page-head">
+    <h1>Sơ đồ bàn</h1>
+    <ul class="legend" aria-label="Chú thích trạng thái bàn">
+        <li><span class="dot st-0" aria-hidden="true"></span>Trống</li>
+        <li><span class="dot st-1" aria-hidden="true"></span>Đang phục vụ</li>
+        <li><span class="dot st-2" aria-hidden="true"></span>Chờ thanh toán</li>
+    </ul>
+</div>
+
+<div id="tables-app" aria-live="polite">
+    <div class="skeleton-grid" id="tables-loading" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div id="tables-zones"></div>
+    <div id="tables-empty" class="state" hidden>
+        <p class="state-title">Chi nhánh chưa có bàn nào</p>
+        <p>Hãy nhờ chủ quán thêm bàn trong mục Chi nhánh và bàn.</p>
+    </div>
+    <div id="tables-error" class="state state-error" hidden>
+        <p class="state-title">Không tải được sơ đồ bàn</p>
+        <button type="button" class="btn btn-primary" id="tables-retry">Thử lại</button>
+    </div>
+</div>
+
+@* Hộp thoại mở đơn cho bàn trống (A12). Số khách không bắt buộc (P05 bước 2). *@
+<dialog class="modal modal-sm" id="open-modal" aria-labelledby="open-modal-title">
+    <form id="open-form" class="modal-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="open-modal-title">Mở bàn</h2>
+                <p class="modal-subtitle">Tạo đơn mới, bàn sẽ chuyển sang Đang phục vụ.</p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="open-guests">Số khách</label>
+                <input class="input" id="open-guests" name="guestCount" type="number" inputmode="numeric"
+                       min="1" max="99" step="1" autocomplete="off" />
+                <span class="field-hint">Có thể để trống</span>
+                <span class="field-error" data-error-for="guestCount"></span>
+                <span class="field-error" data-error-for="tableId"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" id="open-submit">Mở đơn</button>
+        </div>
+    </form>
+</dialog>
+
+@section Scripts {
+    <script src="~/js/pos/tables.js" asp-append-version="true"></script>
+}

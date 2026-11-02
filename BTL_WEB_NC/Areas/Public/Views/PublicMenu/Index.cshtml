@@ -1,0 +1,96 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@using System.Globalization
+@using System.Text.Json
+@model PublicMenuPage
+@{
+    var vn = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal v) => v.ToString("N0", vn) + " đ";
+    var total = Model.Categories.Sum(c => c.Products.Count);
+    var hours = Model.OpenTime.ToString("HH:mm", CultureInfo.InvariantCulture) + " – " +
+                Model.CloseTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+
+    ViewData["Title"] = $"Thực đơn {Model.TenantName} – {Model.BranchName}";
+    ViewData["Description"] = $"Thực đơn {Model.BranchName} của {Model.TenantName}: {total} món đang bán. " +
+                              $"Địa chỉ {Model.Address}, mở cửa {hours}.";
+
+    // JSON-LD (tùy chọn). JsonSerializer mặc định tự escape < > & nên không thoát khỏi thẻ <script>.
+    // KHÔNG đổi sang JavaScriptEncoder.UnsafeRelaxedJsonEscaping.
+    var jsonLd = JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "CafeOrCoffeeShop",
+        ["name"] = $"{Model.TenantName} – {Model.BranchName}",
+        ["url"] = ViewData["Canonical"],
+        ["telephone"] = Model.Phone,
+        ["address"] = new Dictionary<string, object?>
+        {
+            ["@type"] = "PostalAddress",
+            ["streetAddress"] = Model.Address,
+            ["addressCountry"] = "VN"
+        }
+    });
+}
+@section Head {
+    <script type="application/ld+json">@Html.Raw(jsonLd)</script>
+}
+
+<header class="pm-header">
+    <h1>@Model.TenantName – @Model.BranchName</h1>
+    <ul class="pm-info">
+        <li>@Model.Address</li>
+        <li>Giờ mở cửa: @hours</li>
+        @if (!string.IsNullOrEmpty(Model.Phone))
+        {
+            <li><a href="tel:@Model.Phone">@Model.Phone</a></li>
+        }
+    </ul>
+</header>
+
+@if (Model.Categories.Count == 0)
+{
+    <main>
+        <p class="pm-empty">Thực đơn đang được cập nhật.</p>
+    </main>
+}
+else
+{
+    <nav class="pm-cats" aria-label="Danh mục món">
+        @for (var i = 0; i < Model.Categories.Count; i++)
+        {
+            <a href="#dm-@i">@Model.Categories[i].Name</a>
+        }
+    </nav>
+
+    <main>
+        @for (var i = 0; i < Model.Categories.Count; i++)
+        {
+            var cat = Model.Categories[i];
+            <section id="dm-@i" class="pm-section">
+                <h2>@cat.Name</h2>
+                <ul class="pm-grid">
+                    @foreach (var p in cat.Products)
+                    {
+                        <li class="pm-item">
+                            @if (!string.IsNullOrEmpty(p.ImagePath))
+                            {
+                                <img src="@p.ImagePath" alt="@p.Name" width="96" height="96" loading="lazy" decoding="async" />
+                            }
+                            else
+                            {
+                                <div class="pm-noimg" aria-hidden="true"></div>
+                            }
+                            <div class="pm-body">
+                                <h3>@p.Name</h3>
+                                @if (!string.IsNullOrWhiteSpace(p.Description))
+                                {
+                                    <p>@p.Description</p>
+                                }
+                                <p class="pm-price">@Money(p.Price)</p>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+    </main>
+}

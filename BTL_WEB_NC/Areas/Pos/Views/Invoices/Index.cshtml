@@ -1,0 +1,58 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH17 – Hóa đơn trong ngày (R28). Trang render phía server, mọi giá trị qua Razor nên đã được mã hóa HTML. Mỗi hóa đơn có "Xem" (MH15) và "In lại" (MH16). *@
+@model InvoiceListDto
+@using System.Globalization
+@{
+    ViewData["Title"] = "Hóa đơn trong ngày";
+    ViewData["Nav"] = "invoices";
+    var vn = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal v) => v.ToString("N0", vn) + " đ";
+}
+<div class="page-head">
+    <h1>Hóa đơn trong ngày</h1>
+    <p class="invoice-day">@Model.Day.ToString("dd/MM/yyyy")</p>
+</div>
+
+<dl class="invoice-summary" aria-label="Tổng kết trong ngày">
+    <div><dt>Số hóa đơn</dt><dd>@Model.Count.ToString("N0", vn)</dd></div>
+    <div><dt>Doanh thu</dt><dd>@Money(Model.TotalRevenue)</dd></div>
+</dl>
+
+@if (Model.Count == 0)
+{
+    <div class="state">
+        <p class="state-title">Hôm nay chưa có hóa đơn nào</p>
+        <p>Hóa đơn xuất hiện ở đây sau khi bàn được thanh toán.</p>
+        <a class="btn btn-primary" href="/pos">Về sơ đồ bàn</a>
+    </div>
+}
+else
+{
+    <ul class="invoice-list">
+        @foreach (var o in Model.Items)
+        {
+            <li class="invoice-item">
+                <div class="invoice-main">
+                    <p class="invoice-code">@o.Code</p>
+                    <p class="invoice-meta">
+                        @o.PaidAt.ToString("HH:mm") • @o.TableName (@o.ZoneName) •
+                        @(o.Method switch { PaymentMethod.Cash => "Tiền mặt", PaymentMethod.BankTransfer => "Chuyển khoản", _ => "–" })
+                        @if (!string.IsNullOrWhiteSpace(o.CashierName))
+                        {
+                            <text> • Thu ngân: @o.CashierName</text>
+                        }
+                    </p>
+                    @if (o.Discount > 0)
+                    {
+                        <p class="invoice-discount">Giảm giá: -@Money(o.Discount)</p>
+                    }
+                </div>
+                <p class="invoice-total">@Money(o.Total)</p>
+                <div class="invoice-actions">
+                    <a class="btn" href="/pos/orders/@o.Id" aria-label="Xem hóa đơn @o.Code">Xem</a>
+                    <a class="btn" href="/pos/orders/@o.Id/print" aria-label="In lại hóa đơn @o.Code">In lại</a>
+                </div>
+            </li>
+        }
+    </ul>
+}
