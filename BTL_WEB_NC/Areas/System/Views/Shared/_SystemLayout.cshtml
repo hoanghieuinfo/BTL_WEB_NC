@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
-    <title>@title – Cà Phê Mây SaaS System</title>
+    <title>@title – CafeSaaS System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
@@ -32,7 +32,7 @@
         <div class="sidebar-brand">
             <span class="brand-logo" aria-hidden="true">☕</span>
             <div class="brand-text">
-                <span class="brand-name">CÀ PHÊ MÂY</span>
+                <span class="brand-name">CAFESAAS</span>
                 <span class="brand-sub">SaaS System Admin</span>
             </div>
         </div>
@@ -42,7 +42,7 @@
             {
                 var active = string.Equals(item.Controller, currentController, StringComparison.OrdinalIgnoreCase);
                 <a href="@item.Href" class="nav-link @(active ? "is-active" : "")" aria-current="@(active ? "page" : null)">
-                    <partial name="_Icon" model="item.Icon" />
+                    <partial name="~/Areas/Manage/Views/Shared/_Icon.cshtml" model="item.Icon" />
                     <span>@item.Text</span>
                 </a>
             }
@@ -64,12 +64,12 @@
         <header class="topbar">
             <button type="button" class="icon-btn topbar-menu" aria-controls="sidebar" aria-expanded="false"
                     aria-label="Mở menu" data-sidebar-toggle>
-                <partial name="_Icon" model="@("hamburger")" />
+                <partial name="~/Areas/Manage/Views/Shared/_Icon.cshtml" model="@("hamburger")" />
             </button>
 
             <div class="topbar-brand">
                 <span class="brand-logo" aria-hidden="true">☕</span>
-                <span class="brand-name">Cà Phê Mây System</span>
+                <span class="brand-name">CafeSaaS System</span>
             </div>
 
             <nav class="breadcrumb-top" aria-label="Đường dẫn">

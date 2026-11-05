@@ -4,6 +4,10 @@
     var plans = ViewBag.Plans as IReadOnlyList<BTL_WEB_NC.Models.Entities.ServicePlan> ?? new List<BTL_WEB_NC.Models.Entities.ServicePlan>();
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/system/tenants.css" asp-append-version="true" />
+}
+
 <div class="page-head">
     <div>
         <h1 class="page-title">Quản lý Tenant (Quán &amp; Chuỗi)</h1>
@@ -136,7 +140,7 @@
                           '&planId=' + encodeURIComponent(planSelect.value);
 
                 try {
-                    var html = await Ajax.get(url);
+                    var html = await Ajax.getHtml(url);
                     container.innerHTML = html;
                     bindListEvents();
                 } catch (err) {

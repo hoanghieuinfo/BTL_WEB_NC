@@ -52,7 +52,7 @@ public class PlansController : SystemControllerBase
     }
 
     // POST /system/plans/{id}/toggle – AJAX: bật/tắt trạng thái gói
-    [HttpPost("{id:int}/toggle")]
+    [HttpPost("system/plans/{id:int}/toggle")]
     public async Task<IActionResult> Toggle(int id, CancellationToken ct)
     {
         try

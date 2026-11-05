@@ -1,82 +1,86 @@
 @* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* Dưới 768px bảng chuyển thành thẻ (R33); CSS ở wwwroot/css/system/tenants.css *@
+@using BTL_WEB_NC.Models.Entities
 @model BTL_WEB_NC.Areas.System.Models.TenantPagedResult
 
 @if (Model.Items.Count == 0)
 {
-    <div style="text-align: center; padding: 48px 16px; color: var(--muted); background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);">
-        <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+    <div class="card tenant-empty">
+        <div class="tenant-empty-icon" aria-hidden="true">🔍</div>
         <div>Không tìm thấy quán nào phù hợp với bộ lọc.</div>
     </div>
 }
 else
 {
-    <div class="table-responsive card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
-        <table class="table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+    <div class="card tenant-panel">
+        <table class="tenant-table">
             <thead>
-                <tr style="border-bottom: 2px solid var(--border); background: #FAF8F5; color: var(--text-2);">
-                    <th style="padding: 12px 16px;">Tên quán &amp; Đường dẫn</th>
-                    <th style="padding: 12px 16px;">Chủ quán</th>
-                    <th style="padding: 12px 16px;">Gói dịch vụ</th>
-                    <th style="padding: 12px 16px;">Quy mô hiện tại</th>
-                    <th style="padding: 12px 16px;">Ngày hết hạn</th>
-                    <th style="padding: 12px 16px;">Trạng thái</th>
-                    <th style="padding: 12px 16px; text-align: right;">Hành động</th>
+                <tr>
+                    <th scope="col">Tên quán &amp; Đường dẫn</th>
+                    <th scope="col">Chủ quán</th>
+                    <th scope="col">Gói dịch vụ</th>
+                    <th scope="col">Quy mô hiện tại</th>
+                    <th scope="col">Ngày hết hạn</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Hành động</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var t in Model.Items)
                 {
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 14px 16px;">
-                            <div style="font-weight: 700; font-size: 14px; color: var(--text);">@t.Name</div>
-                            <div style="font-size: 12px; color: var(--muted); font-family: monospace;">@t.Slug</div>
+                    <tr class="tenant-row">
+                        <td class="col-name">
+                            <div class="tenant-name">@t.Name</div>
+                            <div class="tenant-slug">@t.Slug</div>
                         </td>
-                        <td style="padding: 14px 16px;">
-                            <div style="font-weight: 500;">@(t.OwnerName ?? "—")</div>
-                            <div style="font-size: 12px; color: var(--muted);">@(t.OwnerEmail ?? t.OwnerPhone ?? "—")</div>
+                        <td class="col-detail" data-label="Chủ quán">
+                            <div class="detail-value">
+                                <div class="owner-name">@(t.OwnerName ?? "—")</div>
+                                <div class="owner-contact">@(t.OwnerEmail ?? t.OwnerPhone ?? "—")</div>
+                            </div>
                         </td>
-                        <td style="padding: 14px 16px;">
-                            <span class="badge" style="background: var(--primary-soft); color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: 600;">
-                                @t.PlanName
-                            </span>
+                        <td class="col-detail" data-label="Gói dịch vụ">
+                            <span class="plan-chip">@t.PlanName</span>
                         </td>
-                        <td style="padding: 14px 16px; font-size: 12px; color: var(--text-2);">
-                            <div>@t.CurrentBranches chi nhánh</div>
-                            <div>@t.CurrentStaff nhân viên</div>
+                        <td class="col-detail" data-label="Quy mô hiện tại">
+                            <div class="detail-value scale">
+                                <div>@t.CurrentBranches chi nhánh</div>
+                                <div>@t.CurrentStaff nhân viên</div>
+                            </div>
                         </td>
-                        <td style="padding: 14px 16px; font-size: 12px;">
+                        <td class="col-detail" data-label="Ngày hết hạn">
                             @(t.PlanExpiresAt.HasValue ? t.PlanExpiresAt.Value.ToString("dd/MM/yyyy") : "—")
                         </td>
-                        <td style="padding: 14px 16px;">
+                        <td class="col-status">
                             @switch (t.Status)
                             {
-                                case BTL_WEB_NC.Models.Entities.TenantStatus.Active:
-                                    <span class="badge" style="background: #E8F5E9; color: #2E7D32; padding: 4px 8px; border-radius: 999px; font-weight: 600;">● Hoạt động</span>
+                                case TenantStatus.Active:
+                                    <span class="tenant-status is-active">● Hoạt động</span>
                                     break;
-                                case BTL_WEB_NC.Models.Entities.TenantStatus.PendingActivation:
-                                    <span class="badge" style="background: #FFF8E1; color: #F57F17; padding: 4px 8px; border-radius: 999px; font-weight: 600;">● Chờ kích hoạt</span>
+                                case TenantStatus.PendingActivation:
+                                    <span class="tenant-status is-pending">● Chờ kích hoạt</span>
                                     break;
-                                case BTL_WEB_NC.Models.Entities.TenantStatus.Locked:
-                                    <span class="badge" style="background: #FFEBEE; color: #C62828; padding: 4px 8px; border-radius: 999px; font-weight: 600;" title="@t.LockReason">● Bị khóa</span>
+                                case TenantStatus.Locked:
+                                    <span class="tenant-status is-locked" title="@t.LockReason">● Bị khóa</span>
                                     break;
-                                case BTL_WEB_NC.Models.Entities.TenantStatus.Rejected:
-                                    <span class="badge" style="background: #F5F5F5; color: #616161; padding: 4px 8px; border-radius: 999px; font-weight: 600;">● Từ chối</span>
+                                case TenantStatus.Rejected:
+                                    <span class="tenant-status is-rejected">● Từ chối</span>
                                     break;
                             }
                         </td>
-                        <td style="padding: 14px 16px; text-align: right;">
-                            <div style="display: inline-flex; gap: 6px;">
-                                @if (t.Status == BTL_WEB_NC.Models.Entities.TenantStatus.PendingActivation)
+                        <td class="col-actions">
+                            <div class="row-actions">
+                                @if (t.Status == TenantStatus.PendingActivation)
                                 {
                                     <button type="button" class="btn btn-primary btn-sm btn-action-status" data-id="@t.Id" data-status="1">Kích hoạt</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-action-status" data-id="@t.Id" data-status="3" style="color: var(--danger);">Từ chối</button>
+                                    <button type="button" class="btn btn-secondary btn-sm btn-action-status text-danger" data-id="@t.Id" data-status="3">Từ chối</button>
                                 }
-                                else if (t.Status == BTL_WEB_NC.Models.Entities.TenantStatus.Active)
+                                else if (t.Status == TenantStatus.Active)
                                 {
                                     <button type="button" class="btn btn-secondary btn-sm btn-open-plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-lock" data-id="@t.Id" data-name="@t.Name" style="color: var(--danger);">Khóa quán</button>
+                                    <button type="button" class="btn btn-secondary btn-sm btn-open-lock text-danger" data-id="@t.Id" data-name="@t.Name">Khóa quán</button>
                                 }
-                                else if (t.Status == BTL_WEB_NC.Models.Entities.TenantStatus.Locked)
+                                else if (t.Status == TenantStatus.Locked)
                                 {
                                     <button type="button" class="btn btn-primary btn-sm btn-action-status" data-id="@t.Id" data-status="1">Mở khóa</button>
                                     <button type="button" class="btn btn-secondary btn-sm btn-open-plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
@@ -88,19 +92,17 @@ else
             </tbody>
         </table>
 
-        <!-- Phân trang -->
         @if (Model.TotalPages > 1)
         {
-            <div class="pagination" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-top: 1px solid var(--border);">
-                <div class="pagination-info" style="font-size: 13px; color: var(--text-2);">
+            <div class="tenant-pagination">
+                <div class="pagination-info">
                     Hiển thị @Model.Items.Count trên tổng số @Model.TotalCount quán
                 </div>
-                <div class="pagination-pages" style="display: flex; gap: 4px;">
+                <div class="pagination-pages">
                     @for (var p = 1; p <= Model.TotalPages; p++)
                     {
-                        <button type="button" class="page-btn @(p == Model.Page ? "is-current" : "")" data-page="@p">
-                            @p
-                        </button>
+                        <button type="button" class="page-btn @(p == Model.Page ? "is-current" : "")" data-page="@p"
+                                aria-label="Trang @p" aria-current="@(p == Model.Page ? "page" : null)">@p</button>
                     }
                 </div>
             </div>

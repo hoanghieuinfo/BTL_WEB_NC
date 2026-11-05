@@ -37,7 +37,7 @@ public class TenantsController : SystemControllerBase
     }
 
     // POST /system/tenants/{id}/status – AJAX A04: kích hoạt, khóa, mở khóa, từ chối
-    [HttpPost("{id:int}/status")]
+    [HttpPost("system/tenants/{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateTenantStatusRequest model, CancellationToken ct)
     {
         try
@@ -64,7 +64,7 @@ public class TenantsController : SystemControllerBase
     }
 
     // POST /system/tenants/{id}/plan – AJAX A05: đổi gói dịch vụ
-    [HttpPost("{id:int}/plan")]
+    [HttpPost("system/tenants/{id:int}/plan")]
     public async Task<IActionResult> ChangePlan(int id, [FromBody] ChangeTenantPlanRequest model, CancellationToken ct)
     {
         try

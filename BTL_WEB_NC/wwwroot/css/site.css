@@ -591,7 +591,8 @@ body.is-sidebar-open .sidebar { transform: none; box-shadow: var(--shadow-lg); }
   color: var(--primary); letter-spacing: 0.5px; margin-bottom: 8px;
 }
 
-.section-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+/* Chỉ áp cho landing page; không đè .section-title 16px của Area Manage */
+:is(.features-section, .pricing-section, .faq-section) .section-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
 .section-subtitle { font-size: 15px; color: var(--text-2); max-width: 600px; margin: 0 auto 36px; }
 
 .features-grid {
