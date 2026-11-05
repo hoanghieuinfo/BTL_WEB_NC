@@ -24,7 +24,7 @@ vì CSP chỉ bật được khi view không còn script và style inline.
 | D2 | Xong (05/11/2026) | Lỗi 4–8. Thêm endpoint A29 (`docs/EndpointBoSung.md`). Hết hạn gói tính theo `PlanExpiresAt`, không cần migration. |
 | D3 | Xong (05/11/2026) | Lỗi 9–11. CSS ở `css/system/`, JS ở `js/system/`; dùng chung `js/manage/layout.js`, `ui.js` với Area Manage (thay cho `js/system/layout.js`). Đổi mật khẩu, đăng ký thành công chuyển sang `_AuthLayout`. Sửa kèm: `PlansController` trả lỗi validate dạng `data.errors`; `toast-region` thiếu id nên toast hiện bằng `alert()`. |
 | D4 | Xong (05/11/2026) | Lỗi 12–15. CSP thêm `blob:` vào `img-src` (ảnh xem trước MH10). Đã thử bằng Edge headless ở 360px và 768px: 16 trang (Module 1 và MH08–MH13) không có vi phạm CSP, lỗi console hay lỗi JS. Sửa kèm: header landing tràn 61px ở 360px. Còn lại (Module 2): nút ⋯ trên thẻ nhân viên MH11 tràn 8px ở 360px. |
-| D5 | Chưa làm | Phần SystemTenantService đã có test ở D2 (`BTL_WEB_NC.Tests/SystemArea`); D5 còn đăng ký, gói dịch vụ, phân quyền. |
+| D5 | Xong (05/11/2026) | Lỗi 16. Test ở `BTL_WEB_NC.Tests/SystemArea` (không đặt tên `System` vì namespace `BTL_WEB_NC.Tests.System` che namespace `System` của .NET). Thêm 36 test: đăng ký (kể cả rollback khi tạo tài khoản lỗi), lọc/phân trang/đổi gói, gói dịch vụ, phân quyền Area System. Tổng 242 test qua. |
 
 ## Danh sách lỗi còn lại
 
