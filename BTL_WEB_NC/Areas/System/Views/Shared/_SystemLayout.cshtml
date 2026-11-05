@@ -1,0 +1,127 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var title = ViewData["Title"] as string ?? "Hệ thống Quản trị SaaS";
+    var currentController = ViewContext.RouteData.Values["controller"] as string ?? "Dashboard";
+
+    var nav = new[]
+    {
+        (Controller: "Dashboard", Href: "/system", Text: "Tổng quan hệ thống", Icon: "dashboard"),
+        (Controller: "Tenants", Href: "/system/tenants", Text: "Quản lý Tenant", Icon: "store"),
+        (Controller: "Plans", Href: "/system/plans", Text: "Gói dịch vụ", Icon: "menu"),
+    };
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <title>@title – Cà Phê Mây SaaS System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="manage system-area">
+    <a class="skip-link" href="#main">Bỏ qua menu</a>
+
+    <aside class="sidebar" id="sidebar" aria-label="Menu Super Admin">
+        <div class="sidebar-brand">
+            <span class="brand-logo" aria-hidden="true">☕</span>
+            <div class="brand-text">
+                <span class="brand-name">CÀ PHÊ MÂY</span>
+                <span class="brand-sub">SaaS System Admin</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            @foreach (var item in nav)
+            {
+                var active = string.Equals(item.Controller, currentController, StringComparison.OrdinalIgnoreCase);
+                <a href="@item.Href" class="nav-link @(active ? "is-active" : "")" aria-current="@(active ? "page" : null)">
+                    <partial name="_Icon" model="item.Icon" />
+                    <span>@item.Text</span>
+                </a>
+            }
+        </nav>
+
+        <div class="sidebar-foot" style="margin-top: auto; padding: 16px; border-top: 1px solid var(--sidebar-line);">
+            <div style="font-size: 12px; color: var(--sidebar-muted);">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; display: inline-block;"></span>
+                    <span>Hệ thống ổn định</span>
+                </div>
+                <div>Production • Việt Nam</div>
+            </div>
+        </div>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close hidden></div>
+
+    <div class="shell">
+        <header class="topbar">
+            <button type="button" class="icon-btn topbar-menu" aria-controls="sidebar" aria-expanded="false"
+                    aria-label="Mở menu" data-sidebar-toggle>
+                <partial name="_Icon" model="@("hamburger")" />
+            </button>
+
+            <div class="topbar-brand">
+                <span class="brand-logo" aria-hidden="true">☕</span>
+                <span class="brand-name">Cà Phê Mây System</span>
+            </div>
+
+            <nav class="breadcrumb-top" aria-label="Đường dẫn">
+                <a href="/system">Hệ thống</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">@title</span>
+            </nav>
+
+            <div class="topbar-actions" style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+                <div class="user-chip">
+                    <span class="user-avatar" aria-hidden="true">SA</span>
+                    <div class="user-text">
+                        <span class="user-name">Super Admin</span>
+                        <span class="user-role muted">Quản trị viên nền tảng</span>
+                    </div>
+                </div>
+
+                <form method="post" action="/dang-xuat" style="margin: 0;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-secondary btn-sm" title="Đăng xuất khỏi hệ thống">
+                        Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <main class="content" id="main">
+            @RenderBody()
+        </main>
+
+        <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <script src="~/js/ajax.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toggle = document.querySelector('[data-sidebar-toggle]');
+            var backdrop = document.querySelector('[data-sidebar-close]');
+            if (toggle && backdrop) {
+                toggle.addEventListener('click', function () {
+                    var open = document.body.classList.toggle('is-sidebar-open');
+                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    backdrop.hidden = !open;
+                });
+                backdrop.addEventListener('click', function () {
+                    document.body.classList.remove('is-sidebar-open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                    backdrop.hidden = true;
+                });
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

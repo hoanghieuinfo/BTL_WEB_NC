@@ -1,8 +1,176 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@model List<BTL_WEB_NC.Models.Entities.ServicePlan>
+@{
+    ViewData["Title"] = "Cà Phê Mây – Nền tảng quản lý chuỗi quán cà phê tinh gọn đa chi nhánh";
+    ViewData["Description"] = "Từ tách đầu tiên đến toàn bộ chuỗi quán: Quản lý bàn, menu QR, tự động trừ kho định lượng và báo cáo doanh thu thông minh theo mô hình SaaS.";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-badge">Đặc tả SaaS đa tenant – FIT HOU</div>
+    <h1 class="hero-title">Nền tảng quản lý chuỗi quán cà phê tinh gọn đa chi nhánh</h1>
+    <p class="hero-subtitle">Từ tách hàng đầu tiên đến toàn bộ chuỗi quán: Kết nối bàn hàng, kho nguyên liệu và doanh thu trong một không gian quản lý dễ dùng.</p>
+    
+    <div class="hero-cta-group">
+        <a href="/dang-ky" class="btn btn-primary btn-lg">Bắt đầu dùng thử miễn phí 30 ngày &rarr;</a>
+        <a href="/ca-phe-may/thuc-don/cau-giay" class="btn btn-secondary btn-lg" target="_blank">Xem thực đơn mẫu QR</a>
+    </div>
+    <div class="hero-checks">
+        <span>✓ Thử nghiệm trọn vẹn 30 ngày</span>
+        <span>✓ Không cần thẻ tín dụng</span>
+        <span>✓ Dữ liệu tách biệt an toàn</span>
+    </div>
+
+    <!-- Phối cảnh giao diện -->
+    <div class="hero-mockup">
+        <div class="mockup-header">
+            <span class="mockup-dot"></span><span class="mockup-dot"></span><span class="mockup-dot"></span>
+            <span class="mockup-url">https://app.caphemay.vn/manage</span>
+        </div>
+        <div class="mockup-body">
+            <div class="mockup-preview-grid">
+                <div class="preview-stat">
+                    <span class="stat-label">Doanh thu hôm nay</span>
+                    <strong class="stat-value">8.450.000 đ</strong>
+                    <span class="stat-trend">↑ 12% so với hôm qua</span>
+                </div>
+                <div class="preview-stat">
+                    <span class="stat-label">Số hóa đơn</span>
+                    <strong class="stat-value">142</strong>
+                    <span class="stat-trend">↑ 9 hóa đơn</span>
+                </div>
+                <div class="preview-stat">
+                    <span class="stat-label">TB mỗi hóa đơn</span>
+                    <strong class="stat-value">59.500 đ</strong>
+                    <span class="stat-trend">Ổn định</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tính năng cốt lõi (Features) -->
+<section id="features" class="features-section">
+    <div class="section-badge">Nền tảng tinh gọn vì vận hành</div>
+    <h2 class="section-title">Bớt việc quản trị. Thêm thời gian cho chất cà phê.</h2>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🏬</div>
+            <h3 class="feature-name">Quản lý chuỗi đa chi nhánh</h3>
+            <p class="feature-desc">Theo dõi các cửa hàng, phân quyền nhân viên và đồng bộ thực đơn từ một nơi duy nhất.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3 class="feature-name">Sơ đồ bàn & Gọi món QR</h3>
+            <p class="feature-desc">Nắm vững trạng thái bàn trực quan. Khách quét mã QR chọn món và gửi đơn ngay tại bàn.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <h3 class="feature-name">Tự động trừ kho định lượng</h3>
+            <p class="feature-desc">Thiết lập công thức cho từng món. Nguyên liệu được cập nhật chính xác theo mỗi cốc trà, cà phê.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3 class="feature-name">Báo cáo doanh thu tức thời</h3>
+            <p class="feature-desc">Xem doanh thu, đơn hàng và món bán chạy theo từng ngày, từng cơ sở trong chuỗi.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Bảng giá dịch vụ (Pricing) -->
+<section id="pricing" class="pricing-section">
+    <div class="section-badge">Bảng giá rõ ràng, lựa chọn dễ dàng</div>
+    <h2 class="section-title">Vừa vặn với quán. Sẵn sàng cho chuỗi.</h2>
+    <p class="section-subtitle">Chọn quy mô phù hợp hôm nay, mở rộng khi quán vươn sang các chi nhánh mới.</p>
+
+    <div class="pricing-grid">
+        @foreach (var plan in Model)
+        {
+            var isHighlight = plan.Name == "Chuỗi";
+            <div class="pricing-card @(isHighlight ? "is-popular" : "")">
+                @if (isHighlight)
+                {
+                    <div class="popular-badge">Phổ biến nhất</div>
+                }
+                <div class="plan-header">
+                    <span class="plan-icon">@(plan.PricePerMonth == 0 ? "🌱" : isHighlight ? "👑" : "☕")</span>
+                    <h3 class="plan-name">Gói @plan.Name</h3>
+                    <div class="plan-price">
+                        <strong>@plan.PricePerMonth.ToString("N0") đ</strong>
+                        <span class="price-period">/tháng</span>
+                    </div>
+                </div>
+                <ul class="plan-features">
+                    <li><strong>@plan.MaxBranches</strong> chi nhánh hoạt động</li>
+                    <li>Tối đa <strong>@plan.MaxStaff</strong> nhân viên</li>
+                    @if (plan.TrialDays.HasValue)
+                    {
+                        <li>Trải nghiệm <strong>@plan.TrialDays.Value ngày</strong> miễn phí</li>
+                    }
+                    else
+                    {
+                        <li>Không giới hạn thời gian sử dụng</li>
+                    }
+                    <li>Quản lý thực đơn & định lượng kho</li>
+                    <li>Sơ đồ bàn & bán hàng POS cảm ứng</li>
+                    <li>Báo cáo doanh thu thời gian thực</li>
+                </ul>
+                <div class="plan-action">
+                    <a href="/dang-ky?planId=@plan.Id" class="btn @(isHighlight ? "btn-primary" : "btn-secondary") btn-block">
+                        Chọn gói @plan.Name
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Câu hỏi thường gặp (FAQ) -->
+<section id="faq" class="faq-section">
+    <div class="section-badge">Giải đáp băn khoăn</div>
+    <h2 class="section-title">Một vài điều bạn có thể đang đắn đo</h2>
+    
+    <div class="faq-list">
+        <details class="faq-item">
+            <summary class="faq-question">Gói Dùng thử bao gồm những gì?</summary>
+            <div class="faq-answer">Bạn có 30 ngày dùng thử miễn phí 1 chi nhánh và tối đa 3 nhân viên. Đầy đủ tính năng quản lý thực đơn, quy trình bán hàng, QR Menu và quản trị quán Cà Phê Mây.</div>
+        </details>
+        <details class="faq-item">
+            <summary class="faq-question">Dữ liệu giữa các quán có bị lộ sang nhau không?</summary>
+            <div class="faq-answer">Tuyệt đối không! Hệ thống sử dụng kiến trúc SaaS đa tenant với bộ lọc Global Query Filter tự động ở tầng truy cập dữ liệu (EF Core), cô lập hoàn toàn giữa các tenant.</div>
+        </details>
+        <details class="faq-item">
+            <summary class="faq-question">Quán có nhiều chi nhánh nhân rộng thế nào?</summary>
+            <div class="faq-answer">Chủ quán có thể nâng cấp lên gói Chuỗi để thêm tối đa 5 chi nhánh và 50 nhân viên. Mỗi chi nhánh vận hành bán hàng độc lập trong khi chủ chuỗi quản trị tập trung.</div>
+        </details>
+    </div>
+</section>
+
+<!-- Call to action cuối trang -->
+<section class="bottom-cta-section">
+    <div class="bottom-cta-box">
+        <h2>Để quán vào guồng. Để bạn an tâm.</h2>
+        <p>Bắt đầu để cuộc vận hành của bạn với 30 ngày trải nghiệm miễn phí.</p>
+        <a href="/dang-ky" class="btn btn-primary btn-lg">Bắt đầu dùng thử miễn phí 30 ngày &rarr;</a>
+    </div>
+</section>
+
+@section Scripts {
+    <!-- Dữ liệu có cấu trúc schema.org JSON-LD (R32) -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "SoftwareApplication",
+      "name": "Cà Phê Mây SaaS",
+      "operatingSystem": "Web",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@@type": "Offer",
+        "price": "0",
+        "priceCurrency": "VND"
+      },
+      "description": "Nền tảng quản lý chuỗi quán cà phê đa chi nhánh theo mô hình SaaS."
+    }
+    </script>
+}
