@@ -536,6 +536,15 @@ body.is-sidebar-open .sidebar { transform: none; box-shadow: var(--shadow-lg); }
 .public-nav .nav-link:hover { color: var(--primary); }
 
 .public-nav-actions { display: flex; gap: 8px; }
+/* < 768px: logo + 2 nút không vừa 360px → ẩn chữ "CafeSaaS" bằng mắt (trình đọc màn hình vẫn đọc), nút gọn hơn */
+.public-header .brand-text {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.public-nav-actions .btn { padding: 0 12px; font-size: 14px; }
+@media (min-width: 768px) {
+  .public-header .brand-text { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .public-nav-actions .btn { padding: 0 16px; font-size: inherit; }
+}
 
 /* Hero Section */
 .hero-section {

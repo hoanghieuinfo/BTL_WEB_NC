@@ -26,7 +26,7 @@
 - Hệ điều hành: Windows, VS Code, terminal PowerShell.
 - SQL Server (máy của Hiếu: instance `DESKTOP-LNNSOIN`), connection string trong `BTL_WEB_NC/appsettings.json`:
   `Server=DESKTOP-LNNSOIN;Database=WNC_CafeSaaS;Trusted_Connection=True;TrustServerCertificate=True`
-- .NET 8 SDK, công cụ `dotnet-ef` (`dotnet tool install --global dotnet-ef`).
+- .NET SDK 8 trở lên (project build net8.0; `global.json` cho phép SDK 9/10), công cụ `dotnet-ef` (`dotnet tool install --global dotnet-ef`).
 - Không ghi mật khẩu thật vào `appsettings.json`.
 
 Lệnh thường dùng (chạy ở thư mục gốc `BTL_WNC`):

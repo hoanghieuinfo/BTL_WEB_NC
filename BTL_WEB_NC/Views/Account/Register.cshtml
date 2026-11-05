@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Đăng ký mở quán dùng thử miễn phí – CafeSaaS";
     ViewData["Description"] = "Khởi tạo hệ thống quản lý cho quán của bạn chỉ trong 2 phút.";
+    // Chỉ landing page và thực đơn công khai được lập chỉ mục (SPEC mục 3.2.5).
+    ViewData["NoIndex"] = true;
     var plans = ViewBag.Plans as List<BTL_WEB_NC.Models.Entities.ServicePlan> ?? new();
 }
 
@@ -51,7 +53,7 @@
                 <div class="form-group">
                     <label asp-for="Slug" class="form-label">Đường dẫn riêng của quán <span class="text-danger">*</span></label>
                     <div class="input-slug-wrap">
-                        <span class="slug-prefix">app.caphemay.vn/</span>
+                        <span class="slug-prefix">@Context.Request.Host/</span>
                         <input asp-for="Slug" class="input input-slug" placeholder="ca-phe-may" maxlength="60" required autocomplete="off" />
                         <span class="slug-status" id="slug-status-icon"></span>
                     </div>

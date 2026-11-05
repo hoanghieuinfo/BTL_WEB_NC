@@ -5,6 +5,7 @@ using BTL_WEB_NC.Data;
 using BTL_WEB_NC.Infrastructure.Ajax;
 using BTL_WEB_NC.Infrastructure.Auth;
 using BTL_WEB_NC.Infrastructure.Files;
+using BTL_WEB_NC.Infrastructure.Security;
 using BTL_WEB_NC.Infrastructure.Tenancy;
 using BTL_WEB_NC.Models.Entities;
 using BTL_WEB_NC.Services;
@@ -115,6 +116,8 @@ else
     app.UseHsts();
 }
 
+// Header bảo mật (CSP, nosniff, Referrer-Policy) cho mọi response, kể cả file tĩnh (Bảng 3.22).
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles(new StaticFileOptions
 {
