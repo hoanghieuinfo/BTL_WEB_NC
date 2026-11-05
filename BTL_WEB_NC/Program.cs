@@ -3,6 +3,7 @@ using BTL_WEB_NC.Areas.Manage.Services;
 using BTL_WEB_NC.Areas.System.Services;
 using BTL_WEB_NC.Data;
 using BTL_WEB_NC.Infrastructure.Ajax;
+using BTL_WEB_NC.Infrastructure.Auth;
 using BTL_WEB_NC.Infrastructure.Files;
 using BTL_WEB_NC.Infrastructure.Tenancy;
 using BTL_WEB_NC.Models.Entities;
@@ -97,6 +98,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+// Giới hạn tần suất theo IP cho A01, A02 và POST /dang-nhap (Bảng 3.22, R36).
+builder.Services.AddAccountRateLimits();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -124,9 +128,13 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 app.UseRouting();
+// Sau UseRouting để đọc được [EnableRateLimiting] trên action.
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// R03: còn mật khẩu khởi tạo thì chỉ được vào trang đổi mật khẩu.
+app.UseMiddleware<MustChangePasswordMiddleware>();
 app.UseAuthorization();
 
 app.MapAreaControllerRoute(

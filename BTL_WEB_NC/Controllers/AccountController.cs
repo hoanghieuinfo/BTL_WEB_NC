@@ -1,7 +1,9 @@
 // [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt)
 using BTL_WEB_NC.Areas.Manage.Services;
 using BTL_WEB_NC.Data;
+using BTL_WEB_NC.Infrastructure.Auth;
 using BTL_WEB_NC.Infrastructure.Tenancy;
+using Microsoft.AspNetCore.RateLimiting;
 using BTL_WEB_NC.Models;
 using BTL_WEB_NC.Models.Entities;
 using BTL_WEB_NC.Services;
@@ -20,17 +22,20 @@ public class AccountController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly AppDbContext _db;
     private readonly ITenantRegistrationService _registrationService;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         SignInManager<AppUser> signInManager,
         UserManager<AppUser> userManager,
         AppDbContext db,
-        ITenantRegistrationService registrationService)
+        ITenantRegistrationService registrationService,
+        ILogger<AccountController> logger)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _db = db;
         _registrationService = registrationService;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -52,6 +57,7 @@ public class AccountController : Controller
 
     [AllowAnonymous]
     [HttpPost("dang-nhap")]
+    [EnableRateLimiting(AccountRateLimits.LoginPolicy)]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
@@ -97,32 +103,11 @@ public class AccountController : Controller
             }
         }
 
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-        {
-            return LocalRedirect(returnUrl);
-        }
-
-        // Bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên (R03)
-        if (user.MustChangePassword)
-        {
-            return RedirectToAction("ChangePassword", "Account");
-        }
-
-        // R02: Chuyển tới giao diện tương ứng theo vai trò đã phân quyền
-        if (await _userManager.IsInRoleAsync(user, AppRoles.SuperAdmin))
-        {
-            return Redirect("/system");
-        }
-        if (await _userManager.IsInRoleAsync(user, AppRoles.TenantAdmin))
-        {
-            return Redirect("/manage");
-        }
-        if (await _userManager.IsInRoleAsync(user, AppRoles.Staff))
-        {
-            return Redirect("/pos");
-        }
-
-        return RedirectToAction("Index", "Home");
+        // R02, R03: đổi mật khẩu khởi tạo được xét trước returnUrl, sau đó mới tới trang theo vai trò.
+        // Mọi đích đều là đường dẫn nội bộ (returnUrl đã qua Url.IsLocalUrl) nên dùng LocalRedirect.
+        var localReturnUrl = !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : null;
+        var target = PostLoginRedirect.Resolve(user.MustChangePassword, localReturnUrl, await _userManager.GetRolesAsync(user));
+        return LocalRedirect(target);
     }
 
     [HttpPost("dang-xuat")]
@@ -179,9 +164,11 @@ public class AccountController : Controller
             ViewBag.Plans = await _db.ServicePlans.IgnoreQueryFilters().Where(p => p.IsActive).OrderBy(p => p.PricePerMonth).ToListAsync(ct);
             return View(model);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            ModelState.AddModelError(string.Empty, "Đã có lỗi xảy ra trong quá trình đăng ký: " + ex.Message);
+            // Bảng 3.22: không đưa chi tiết lỗi nội bộ ra giao diện; chi tiết chỉ ghi vào log.
+            _logger.LogError(ex, "Đăng ký quán thất bại cho slug {Slug}", model.Slug);
+            ModelState.AddModelError(string.Empty, "Không thể đăng ký lúc này. Vui lòng thử lại sau.");
             ViewBag.Plans = await _db.ServicePlans.IgnoreQueryFilters().Where(p => p.IsActive).OrderBy(p => p.PricePerMonth).ToListAsync(ct);
             return View(model);
         }
@@ -191,6 +178,7 @@ public class AccountController : Controller
 
     [AllowAnonymous]
     [HttpGet("api/account/check-email")]
+    [EnableRateLimiting(AccountRateLimits.AccountCheckPolicy)]
     public async Task<IActionResult> CheckEmail([FromQuery] string? email, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -207,6 +195,7 @@ public class AccountController : Controller
 
     [AllowAnonymous]
     [HttpGet("api/account/check-slug")]
+    [EnableRateLimiting(AccountRateLimits.AccountCheckPolicy)]
     public async Task<IActionResult> CheckSlug([FromQuery] string? slug, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(slug))
@@ -275,9 +264,6 @@ public class AccountController : Controller
         await _signInManager.RefreshSignInAsync(user);
         TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
 
-        if (await _userManager.IsInRoleAsync(user, AppRoles.SuperAdmin)) return Redirect("/system");
-        if (await _userManager.IsInRoleAsync(user, AppRoles.TenantAdmin)) return Redirect("/manage");
-        if (await _userManager.IsInRoleAsync(user, AppRoles.Staff)) return Redirect("/pos");
-        return RedirectToAction("Index", "Home");
+        return LocalRedirect(PostLoginRedirect.Resolve(false, null, await _userManager.GetRolesAsync(user)));
     }
 }

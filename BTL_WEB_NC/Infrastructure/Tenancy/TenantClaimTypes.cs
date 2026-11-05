@@ -8,6 +8,8 @@ public static class TenantClaimTypes
     public const string TenantId = "tenant_id";
     public const string BranchId = "branch_id";
     public const string FullName = "full_name";
+    /// <summary>Có claim này khi tài khoản phải đổi mật khẩu khởi tạo (R03); MustChangePasswordMiddleware đọc nó.</summary>
+    public const string MustChangePassword = "must_change_password";
 }
 
 /// <summary>Ba vai trò Identity (mục 3.2.4).</summary>

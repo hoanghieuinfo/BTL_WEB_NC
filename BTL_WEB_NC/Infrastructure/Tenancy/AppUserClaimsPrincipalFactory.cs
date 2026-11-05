@@ -38,6 +38,12 @@ public class AppUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<AppUser,
             identity.AddClaim(new Claim(TenantClaimTypes.BranchId,
                 user.BranchId.Value.ToString(CultureInfo.InvariantCulture)));
         }
+        // R03: cờ đổi mật khẩu đi theo cookie → middleware chặn mà không truy vấn CSDL mỗi request.
+        // Đổi mật khẩu xong, RefreshSignInAsync dựng lại cookie qua factory này nên claim tự mất.
+        if (user.MustChangePassword)
+        {
+            identity.AddClaim(new Claim(TenantClaimTypes.MustChangePassword, "true"));
+        }
 
         return identity;
     }
