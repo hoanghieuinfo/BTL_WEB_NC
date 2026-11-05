@@ -39,3 +39,15 @@ Bảng 3.20 chỉ ghi `/manage/inventory` cho MH12. Ba trang con dưới đây c
 
 Ghi chú về MH08: đổi chi nhánh ở trang Tổng quan dùng form GET tải lại chính trang `/manage?branchId=`, nên không có
 endpoint AJAX riêng (không có `/manage/summary`). Có thể ghi tham số `?branchId=` vào dòng MH08 của Bảng 3.20.
+
+## Endpoint bổ sung của Area System (Module 1)
+
+Điều kiện chung: chỉ vai trò `SuperAdmin`; POST gửi token trong header `RequestVerificationToken`; JSON `{ success, message, data }`.
+Area System đọc mọi tenant (mục 3.2.2c), nên tenant không tồn tại trả 404.
+
+| Mã | Phương thức, đường dẫn | Mục đích | Kết quả | Yêu cầu |
+|---|---|---|---|---|
+| A29 | POST /system/tenants/{id}/expiry | MH06: gia hạn gói (P02 bước 3), body `{ planExpiresAt: "yyyy-MM-dd" }`. Ngày phải sau hôm nay (400, `data.errors.planExpiresAt`); chỉ quán Hoạt động hoặc Bị khóa (400) | JSON | R08 |
+
+Bổ sung tham số cho A03 (`GET /system/tenants/list`): `expired=true` chỉ trả quán có `PlanExpiresAt` trước hôm nay
+(đánh dấu hết hạn gói, P02 bước 3; không có trạng thái riêng trong `TenantStatus`).

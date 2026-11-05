@@ -40,6 +40,11 @@ public class TenantsController : SystemControllerBase
     [HttpPost("system/tenants/{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateTenantStatusRequest model, CancellationToken ct)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResult.ValidationFailed(ModelState));
+        }
+
         try
         {
             await _tenantService.UpdateStatusAsync(id, model.Status, model.LockReason, ct);
@@ -67,6 +72,11 @@ public class TenantsController : SystemControllerBase
     [HttpPost("system/tenants/{id:int}/plan")]
     public async Task<IActionResult> ChangePlan(int id, [FromBody] ChangeTenantPlanRequest model, CancellationToken ct)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResult.ValidationFailed(ModelState));
+        }
+
         try
         {
             await _tenantService.ChangePlanAsync(id, model.PlanId, ct);
@@ -75,6 +85,35 @@ public class TenantsController : SystemControllerBase
         catch (NotFoundException ex)
         {
             return NotFound(ApiResult.Fail(ex.Message));
+        }
+        catch (BusinessRuleException ex)
+        {
+            return BadRequest(ApiResult.Fail(ex.Message));
+        }
+    }
+
+    // [AI] Claude hỗ trợ – Phụ lục Z.7
+    // POST /system/tenants/{id}/expiry – AJAX A29 (EndpointBoSung.md): gia hạn gói, P02 bước 3
+    [HttpPost("system/tenants/{id:int}/expiry")]
+    public async Task<IActionResult> ExtendExpiry(int id, [FromBody] ExtendTenantExpiryRequest model, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResult.ValidationFailed(ModelState));
+        }
+
+        try
+        {
+            await _tenantService.ExtendExpiryAsync(id, model.PlanExpiresAt!.Value, ct);
+            return Ok(ApiResult.Ok(null, $"Đã gia hạn gói tới ngày {model.PlanExpiresAt.Value:dd/MM/yyyy}."));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ApiResult.Fail(ex.Message));
+        }
+        catch (FieldValidationException ex)
+        {
+            return BadRequest(ApiResult.FieldError(ex.Field, ex.Message));
         }
         catch (BusinessRuleException ex)
         {

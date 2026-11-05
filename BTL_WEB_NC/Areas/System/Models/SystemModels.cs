@@ -11,6 +11,8 @@ public class SystemDashboardViewModel
     public int ActiveTenants { get; set; }
     public int PendingTenants { get; set; }
     public int LockedTenants { get; set; }
+    /// <summary>Quán có PlanExpiresAt trước hôm nay (P02 bước 3).</summary>
+    public int ExpiredTenants { get; set; }
 
     public IReadOnlyList<MonthlyRegistrationDto> MonthlyRegistrations { get; set; } = new List<MonthlyRegistrationDto>();
     public IReadOnlyList<PlanDistributionDto> PlanDistributions { get; set; } = new List<PlanDistributionDto>();
@@ -26,6 +28,8 @@ public class TenantFilterModel
     public string? Keyword { get; set; }
     public TenantStatus? Status { get; set; }
     public int? PlanId { get; set; }
+    /// <summary>true: chỉ quán đã hết hạn gói.</summary>
+    public bool? Expired { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 8;
 }
@@ -40,6 +44,7 @@ public class TenantSummaryDto
     public int PlanId { get; set; }
     public TenantStatus Status { get; set; }
     public DateTime? PlanExpiresAt { get; set; }
+    public bool IsExpired { get; set; }
     public string? LockReason { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? OwnerName { get; set; }
@@ -62,6 +67,8 @@ public class UpdateTenantStatusRequest
 {
     [Required]
     public TenantStatus Status { get; set; }
+    // Cột Tenants.LockReason là nvarchar(255) (Bảng 3.10).
+    [StringLength(255, ErrorMessage = "Lý do tối đa 255 ký tự.")]
     public string? LockReason { get; set; }
 }
 
@@ -96,4 +103,11 @@ public class ServicePlanFormModel
     public int? TrialDays { get; set; }
 
     public bool IsActive { get; set; } = true;
+}
+
+/// <summary>A29 – Gia hạn gói cho tenant (P02 bước 3).</summary>
+public class ExtendTenantExpiryRequest
+{
+    [Required(ErrorMessage = "Vui lòng chọn ngày hết hạn mới.")]
+    public DateTime? PlanExpiresAt { get; set; }
 }

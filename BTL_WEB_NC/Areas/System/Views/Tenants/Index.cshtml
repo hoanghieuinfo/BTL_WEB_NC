@@ -1,4 +1,5 @@
 @* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D2: modal từ chối có lý do, lọc và gia hạn gói hết hạn) *@
 @{
     ViewData["Title"] = "Quản lý Tenant (Quán & Chuỗi)";
     var plans = ViewBag.Plans as IReadOnlyList<BTL_WEB_NC.Models.Entities.ServicePlan> ?? new List<BTL_WEB_NC.Models.Entities.ServicePlan>();
@@ -28,6 +29,7 @@
                 <option value="1">Đang hoạt động</option>
                 <option value="2">Bị khóa</option>
                 <option value="3">Từ chối</option>
+                <option value="expired">Hết hạn gói</option>
             </select>
         </div>
         <div style="width: 180px;">
@@ -50,28 +52,51 @@
     </div>
 </div>
 
-<!-- Modal khóa Tenant (Hình 3.17) -->
+<!-- Modal nhập lý do: dùng chung cho Khóa (Hình 3.17) và Từ chối (P01 bước 5) -->
 <dialog id="modal-lock" class="modal-sm" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0; background: var(--card); box-shadow: var(--shadow-lg);">
     <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
         <h3 style="font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--danger);">
-            <span>🔒</span> Khóa hoạt động Tenant
+            <span aria-hidden="true">🔒</span> <span id="lock-title">Khóa hoạt động Tenant</span>
         </h3>
         <button type="button" class="icon-btn" onclick="document.getElementById('modal-lock').close();">✕</button>
     </div>
     <div style="padding: 20px;">
-        <div style="background: #FEF2F2; border: 1px solid #FEE2E2; color: #991B1B; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px;">
+        <div id="lock-warning" style="background: #FEF2F2; border: 1px solid #FEE2E2; color: #991B1B; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px;">
             ⚠️ <strong>Cảnh báo:</strong> Khi bị khóa, toàn bộ tài khoản thuộc quán này sẽ bị thu hồi phiên đăng nhập ngay lập tức và trang thực đơn công khai sẽ tạm ngừng phục vụ.
         </div>
         <p style="font-size: 14px; margin-bottom: 12px;">Quán: <strong id="lock-tenant-name"></strong></p>
         <div class="form-group">
-            <label class="form-label">Lý do khóa quán <span class="text-danger">*</span></label>
-            <textarea id="lock-reason" class="input" style="height: 80px; resize: none;" placeholder="Nhập lý do khóa quán (lưu vào lịch sử quản trị)..." required></textarea>
+            <label class="form-label" for="lock-reason"><span id="lock-reason-label">Lý do khóa quán</span> <span class="text-danger">*</span></label>
+            <textarea id="lock-reason" class="input" style="height: 80px; resize: none;" maxlength="255" placeholder="Nhập lý do (lưu vào lịch sử quản trị)..." required></textarea>
             <span class="field-error" id="lock-reason-error" style="display: none;"></span>
         </div>
     </div>
     <div style="padding: 14px 20px; background: #FAF8F5; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-lock').close();">Hủy</button>
         <button type="button" id="btn-confirm-lock" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Khóa Tenant</button>
+    </div>
+</dialog>
+
+<!-- Modal gia hạn gói (A29, P02 bước 3) -->
+<dialog id="modal-expiry" class="modal-sm" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0; background: var(--card); box-shadow: var(--shadow-lg);">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span aria-hidden="true">📅</span> Gia hạn gói dịch vụ
+        </h3>
+        <button type="button" class="icon-btn" onclick="document.getElementById('modal-expiry').close();">✕</button>
+    </div>
+    <div style="padding: 20px;">
+        <p style="font-size: 14px; margin-bottom: 12px;">Quán: <strong id="expiry-tenant-name"></strong></p>
+        <p style="font-size: 13px; margin-bottom: 16px; color: var(--text-2);">Hết hạn hiện tại: <strong id="expiry-current"></strong></p>
+        <div class="form-group">
+            <label class="form-label" for="expiry-date">Ngày hết hạn mới <span class="text-danger">*</span></label>
+            <input type="date" id="expiry-date" class="input" required />
+            <span class="field-error" id="expiry-date-error" style="display: none;"></span>
+        </div>
+    </div>
+    <div style="padding: 14px 20px; background: #FAF8F5; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-expiry').close();">Hủy</button>
+        <button type="button" id="btn-confirm-expiry" class="btn btn-primary">Gia hạn</button>
     </div>
 </dialog>
 
@@ -115,7 +140,19 @@
             var lockReason = document.getElementById('lock-reason');
             var lockReasonErr = document.getElementById('lock-reason-error');
             var btnConfirmLock = document.getElementById('btn-confirm-lock');
+            var lockTitle = document.getElementById('lock-title');
+            var lockWarning = document.getElementById('lock-warning');
+            var lockReasonLabel = document.getElementById('lock-reason-label');
             var currentLockId = 0;
+            var currentReasonStatus = 2; // 2 = Khóa, 3 = Từ chối (TenantStatus)
+
+            var modalExpiry = document.getElementById('modal-expiry');
+            var expiryTenantName = document.getElementById('expiry-tenant-name');
+            var expiryCurrent = document.getElementById('expiry-current');
+            var expiryDate = document.getElementById('expiry-date');
+            var expiryDateErr = document.getElementById('expiry-date-error');
+            var btnConfirmExpiry = document.getElementById('btn-confirm-expiry');
+            var currentExpiryId = 0;
 
             var modalPlan = document.getElementById('modal-plan');
             var planTenantName = document.getElementById('plan-tenant-name');
@@ -130,14 +167,19 @@
             if (urlParams.has('status')) {
                 statusSelect.value = urlParams.get('status');
             }
+            if (urlParams.get('expired') === 'true') {
+                statusSelect.value = 'expired';
+            }
 
-            // Tải danh sách AJAX (A03)
+            // Tải danh sách AJAX (A03). "Hết hạn gói" không phải TenantStatus → gửi tham số expired riêng.
             async function loadTenants(page) {
                 currentPage = page || 1;
+                var expired = statusSelect.value === 'expired';
                 var url = '/system/tenants/list?page=' + currentPage +
                           '&keyword=' + encodeURIComponent(kwInput.value.trim()) +
-                          '&status=' + encodeURIComponent(statusSelect.value) +
-                          '&planId=' + encodeURIComponent(planSelect.value);
+                          '&status=' + encodeURIComponent(expired ? '' : statusSelect.value) +
+                          '&planId=' + encodeURIComponent(planSelect.value) +
+                          (expired ? '&expired=true' : '');
 
                 try {
                     var html = await Ajax.getHtml(url);
@@ -157,12 +199,12 @@
                     });
                 });
 
-                // Cập nhật trạng thái trực tiếp (Kích hoạt, Từ chối, Mở khóa)
+                // Cập nhật trạng thái trực tiếp (Kích hoạt, Mở khóa). Từ chối cần lý do → dùng modal.
                 document.querySelectorAll('.btn-action-status').forEach(function (btn) {
                     btn.addEventListener('click', async function () {
                         var id = this.getAttribute('data-id');
                         var status = parseInt(this.getAttribute('data-status'));
-                        var action = status === 1 ? 'kích hoạt' : 'từ chối';
+                        var action = this.textContent.trim().toLowerCase();
 
                         if (!confirm('Bạn có chắc chắn muốn ' + action + ' quán này không?')) return;
 
@@ -177,14 +219,33 @@
                     });
                 });
 
-                // Mở Modal Khóa quán
-                document.querySelectorAll('.btn-open-lock').forEach(function (btn) {
+                // Mở Modal Khóa quán / Từ chối quán (cùng một modal, khác tiêu đề và trạng thái gửi lên)
+                document.querySelectorAll('.btn-open-lock, .btn-open-reject').forEach(function (btn) {
                     btn.addEventListener('click', function () {
+                        var reject = this.classList.contains('btn-open-reject');
+                        currentReasonStatus = reject ? 3 : 2;
+                        lockTitle.textContent = reject ? 'Từ chối đăng ký' : 'Khóa hoạt động Tenant';
+                        lockReasonLabel.textContent = reject ? 'Lý do từ chối' : 'Lý do khóa quán';
+                        btnConfirmLock.textContent = reject ? 'Từ chối' : 'Khóa Tenant';
+                        lockWarning.style.display = reject ? 'none' : 'block';
                         currentLockId = this.getAttribute('data-id');
                         lockTenantName.textContent = this.getAttribute('data-name');
                         lockReason.value = '';
                         lockReasonErr.style.display = 'none';
                         modalLock.showModal();
+                    });
+                });
+
+                // Mở Modal Gia hạn (A29)
+                document.querySelectorAll('.btn-open-expiry').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        currentExpiryId = this.getAttribute('data-id');
+                        expiryTenantName.textContent = this.getAttribute('data-name');
+                        expiryCurrent.textContent = this.getAttribute('data-expiry-text') || 'Chưa đặt';
+                        expiryDate.value = '';
+                        expiryDate.min = tomorrowIso();
+                        expiryDateErr.style.display = 'none';
+                        modalExpiry.showModal();
                     });
                 });
 
@@ -199,11 +260,11 @@
                 });
             }
 
-            // Xử lý xác nhận Khóa quán (A04)
+            // Xử lý xác nhận Khóa quán / Từ chối quán (A04)
             btnConfirmLock.addEventListener('click', async function () {
                 var reason = lockReason.value.trim();
                 if (!reason) {
-                    lockReasonErr.textContent = 'Vui lòng nhập lý do khóa quán.';
+                    lockReasonErr.textContent = currentReasonStatus === 3 ? 'Vui lòng nhập lý do từ chối.' : 'Vui lòng nhập lý do khóa quán.';
                     lockReasonErr.style.display = 'block';
                     return;
                 }
@@ -211,7 +272,7 @@
                 btnConfirmLock.disabled = true;
                 try {
                     var res = await Ajax.postJson('/system/tenants/' + currentLockId + '/status', {
-                        status: 2, // Locked
+                        status: currentReasonStatus,
                         lockReason: reason
                     });
                     if (res.success) {
@@ -219,11 +280,48 @@
                         loadTenants(currentPage);
                     }
                 } catch (err) {
-                    alert(err.message || 'Lỗi khi khóa quán.');
+                    lockReasonErr.textContent = err.message || 'Thao tác không thành công.';
+                    lockReasonErr.style.display = 'block';
                 } finally {
                     btnConfirmLock.disabled = false;
                 }
             });
+
+            // Xử lý xác nhận Gia hạn (A29)
+            btnConfirmExpiry.addEventListener('click', async function () {
+                if (!expiryDate.value) {
+                    expiryDateErr.textContent = 'Vui lòng chọn ngày hết hạn mới.';
+                    expiryDateErr.style.display = 'block';
+                    return;
+                }
+
+                btnConfirmExpiry.disabled = true;
+                try {
+                    var res = await Ajax.postJson('/system/tenants/' + currentExpiryId + '/expiry', {
+                        planExpiresAt: expiryDate.value
+                    });
+                    if (res.success) {
+                        modalExpiry.close();
+                        Ajax.toast(res.message, 'success');
+                        loadTenants(currentPage);
+                    }
+                } catch (err) {
+                    var fieldErrors = err.data && err.data.errors && err.data.errors.planExpiresAt;
+                    expiryDateErr.textContent = fieldErrors ? fieldErrors[0] : (err.message || 'Không gia hạn được.');
+                    expiryDateErr.style.display = 'block';
+                } finally {
+                    btnConfirmExpiry.disabled = false;
+                }
+            });
+
+            // Ngày mai theo giờ máy người dùng, dạng yyyy-MM-dd cho input type=date (server vẫn kiểm tra lại).
+            function tomorrowIso() {
+                var d = new Date();
+                d.setDate(d.getDate() + 1);
+                var m = String(d.getMonth() + 1).padStart(2, '0');
+                var day = String(d.getDate()).padStart(2, '0');
+                return d.getFullYear() + '-' + m + '-' + day;
+            }
 
             // Xử lý xác nhận Đổi gói (A05)
             btnConfirmPlan.addEventListener('click', async function () {

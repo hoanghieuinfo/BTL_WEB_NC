@@ -1,4 +1,5 @@
 @* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D2: modal từ chối có lý do, lọc và gia hạn gói hết hạn) *@
 @model BTL_WEB_NC.Areas.System.Models.SystemDashboardViewModel
 @{
     ViewData["Title"] = "Tổng quan hệ thống";
@@ -49,12 +50,22 @@
 
     <div class="stat-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <span class="muted" style="font-size: 13px;">Quán bị khóa/hết hạn</span>
+            <span class="muted" style="font-size: 13px;">Quán bị khóa/từ chối</span>
             <span style="font-size: 18px;">🔒</span>
         </div>
         <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--danger);">@Model.LockedTenants</div>
-        <div style="font-size: 12px; color: var(--muted); font-weight: 500;">Kiểm tra gia hạn</div>
+        <div style="font-size: 12px; color: var(--muted); font-weight: 500;">Không dùng được dịch vụ</div>
     </div>
+
+    @* [AI] Claude hỗ trợ – Phụ lục Z.7: P02 bước 3 – đánh dấu quán hết hạn gói (tính theo PlanExpiresAt) *@
+    <a class="stat-card" href="/system/tenants?expired=true" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; color: inherit; text-decoration: none;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="muted" style="font-size: 13px;">Hết hạn gói</span>
+            <span style="font-size: 18px;" aria-hidden="true">📅</span>
+        </div>
+        <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--danger);">@Model.ExpiredTenants</div>
+        <div style="font-size: 12px; color: var(--muted); font-weight: 500;">Xem và gia hạn &rarr;</div>
+    </a>
 </div>
 
 <!-- 2 biểu đồ phân tích -->
@@ -120,7 +131,7 @@
                             <td style="padding: 12px 10px;">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                             <td style="padding: 12px 10px; text-align: right;">
                                 <button type="button" class="btn btn-primary btn-sm btn-quick-action" data-id="@item.Id" data-status="1">Kích hoạt</button>
-                                <button type="button" class="btn btn-secondary btn-sm btn-quick-action" data-id="@item.Id" data-status="3" style="color: var(--danger);">Từ chối</button>
+                                <button type="button" class="btn btn-secondary btn-sm btn-quick-reject" data-id="@item.Id" data-name="@item.Name" style="color: var(--danger);">Từ chối</button>
                             </td>
                         </tr>
                     }
@@ -129,6 +140,26 @@
         </div>
     }
 </div>
+
+<!-- Modal từ chối đăng ký: bắt buộc ghi lý do (P01 bước 5) -->
+<dialog id="modal-reject" class="modal-sm" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0; background: var(--card); box-shadow: var(--shadow-lg);">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+        <h3 style="font-size: 16px; margin: 0; color: var(--danger);">Từ chối đăng ký</h3>
+        <button type="button" class="icon-btn" onclick="document.getElementById('modal-reject').close();">✕</button>
+    </div>
+    <div style="padding: 20px;">
+        <p style="font-size: 14px; margin-bottom: 12px;">Quán: <strong id="reject-tenant-name"></strong></p>
+        <div class="form-group">
+            <label class="form-label" for="reject-reason">Lý do từ chối <span class="text-danger">*</span></label>
+            <textarea id="reject-reason" class="input" style="height: 80px; resize: none;" maxlength="255" required></textarea>
+            <span class="field-error" id="reject-reason-error" style="display: none;"></span>
+        </div>
+    </div>
+    <div style="padding: 14px 20px; background: #FAF8F5; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-reject').close();">Hủy</button>
+        <button type="button" id="btn-confirm-reject" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Từ chối</button>
+    </div>
+</dialog>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -185,14 +216,52 @@
                 }
             });
 
-            // Quick actions kích hoạt / từ chối
+            // Từ chối: mở modal nhập lý do
+            var modalReject = document.getElementById('modal-reject');
+            var rejectName = document.getElementById('reject-tenant-name');
+            var rejectReason = document.getElementById('reject-reason');
+            var rejectErr = document.getElementById('reject-reason-error');
+            var btnConfirmReject = document.getElementById('btn-confirm-reject');
+            var rejectId = 0;
+
+            document.querySelectorAll('.btn-quick-reject').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    rejectId = this.getAttribute('data-id');
+                    rejectName.textContent = this.getAttribute('data-name');
+                    rejectReason.value = '';
+                    rejectErr.style.display = 'none';
+                    modalReject.showModal();
+                });
+            });
+
+            btnConfirmReject.addEventListener('click', async function () {
+                var reason = rejectReason.value.trim();
+                if (!reason) {
+                    rejectErr.textContent = 'Vui lòng nhập lý do từ chối.';
+                    rejectErr.style.display = 'block';
+                    return;
+                }
+                btnConfirmReject.disabled = true;
+                try {
+                    var res = await Ajax.postJson('/system/tenants/' + rejectId + '/status', { status: 3, lockReason: reason });
+                    if (res.success) {
+                        location.reload();
+                    }
+                } catch (err) {
+                    rejectErr.textContent = err.message || 'Thao tác thất bại.';
+                    rejectErr.style.display = 'block';
+                } finally {
+                    btnConfirmReject.disabled = false;
+                }
+            });
+
+            // Quick action kích hoạt
             document.querySelectorAll('.btn-quick-action').forEach(function (btn) {
                 btn.addEventListener('click', async function () {
                     var id = this.getAttribute('data-id');
                     var status = parseInt(this.getAttribute('data-status'));
-                    var actionName = status === 1 ? 'kích hoạt' : 'từ chối';
 
-                    if (!confirm('Bạn có chắc muốn ' + actionName + ' quán này không?')) return;
+                    if (!confirm('Bạn có chắc muốn kích hoạt quán này không?')) return;
 
                     try {
                         var res = await Ajax.postJson('/system/tenants/' + id + '/status', { status: status });

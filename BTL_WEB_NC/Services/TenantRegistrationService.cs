@@ -118,7 +118,8 @@ public class TenantRegistrationService : ITenantRegistrationService
                 FullName = model.FullName.Trim(),
                 PhoneNumber = model.PhoneNumber.Trim(),
                 TenantId = tenant.Id,
-                BranchId = defaultBranch.Id,
+                // Chủ quán quản lý mọi chi nhánh nên không gắn chi nhánh, giống SeedData (claim branch_id chỉ dành cho Staff).
+                BranchId = null,
                 StartDate = DateOnly.FromDateTime(now),
                 IsActive = true,
                 MustChangePassword = false

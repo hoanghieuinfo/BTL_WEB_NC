@@ -49,7 +49,7 @@ else
                             </div>
                         </td>
                         <td class="col-detail" data-label="Ngày hết hạn">
-                            @(t.PlanExpiresAt.HasValue ? t.PlanExpiresAt.Value.ToString("dd/MM/yyyy") : "—")
+                            <span class="@(t.IsExpired ? "expiry-past" : null)">@(t.PlanExpiresAt?.ToString("dd/MM/yyyy") ?? "—")</span>
                         </td>
                         <td class="col-status">
                             @switch (t.Status)
@@ -67,23 +67,29 @@ else
                                     <span class="tenant-status is-rejected">● Từ chối</span>
                                     break;
                             }
+                            @if (t.IsExpired)
+                            {
+                                <span class="tenant-status is-expired">Hết hạn</span>
+                            }
                         </td>
                         <td class="col-actions">
                             <div class="row-actions">
                                 @if (t.Status == TenantStatus.PendingActivation)
                                 {
                                     <button type="button" class="btn btn-primary btn-sm btn-action-status" data-id="@t.Id" data-status="1">Kích hoạt</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-action-status text-danger" data-id="@t.Id" data-status="3">Từ chối</button>
+                                    <button type="button" class="btn btn-secondary btn-sm btn-open-reject text-danger" data-id="@t.Id" data-name="@t.Name">Từ chối</button>
                                 }
                                 else if (t.Status == TenantStatus.Active)
                                 {
                                     <button type="button" class="btn btn-secondary btn-sm btn-open-plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
+                                    <button type="button" class="btn btn-secondary btn-sm btn-open-expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
                                     <button type="button" class="btn btn-secondary btn-sm btn-open-lock text-danger" data-id="@t.Id" data-name="@t.Name">Khóa quán</button>
                                 }
                                 else if (t.Status == TenantStatus.Locked)
                                 {
                                     <button type="button" class="btn btn-primary btn-sm btn-action-status" data-id="@t.Id" data-status="1">Mở khóa</button>
                                     <button type="button" class="btn btn-secondary btn-sm btn-open-plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
+                                    <button type="button" class="btn btn-secondary btn-sm btn-open-expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
                                 }
                             </div>
                         </td>

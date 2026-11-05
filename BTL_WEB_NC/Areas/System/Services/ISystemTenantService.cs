@@ -10,5 +10,7 @@ public interface ISystemTenantService
     Task<TenantSummaryDto?> GetTenantDetailAsync(int id, CancellationToken ct = default);
     Task UpdateStatusAsync(int id, TenantStatus status, string? lockReason, CancellationToken ct = default);
     Task ChangePlanAsync(int id, int newPlanId, CancellationToken ct = default);
+    /// <summary>Gia hạn gói (A29): đặt ngày hết hạn mới, phải sau hôm nay.</summary>
+    Task ExtendExpiryAsync(int id, DateTime newExpiry, CancellationToken ct = default);
     Task<SystemDashboardViewModel> GetDashboardOverviewAsync(CancellationToken ct = default);
 }

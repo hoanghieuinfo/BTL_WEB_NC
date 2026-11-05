@@ -16,6 +16,16 @@ vì CSP chỉ bật được khi view không còn script và style inline.
 - Đổi tên nền tảng "Cà Phê Mây" thành **CafeSaaS** (trùng tên quán mẫu).
 - `_TenantList` dưới 768px chuyển bảng thành thẻ (`wwwroot/css/system/tenants.css`).
 
+## Tiến độ
+
+| Bước | Trạng thái | Ghi chú |
+|---|---|---|
+| D1 | Xong (05/11/2026) | Lỗi 1–3. Thêm `Infrastructure/Auth/` (middleware đổi mật khẩu, rate limit, `PostLoginRedirect`). |
+| D2 | Xong (05/11/2026) | Lỗi 4–8. Thêm endpoint A29 (`docs/EndpointBoSung.md`). Hết hạn gói tính theo `PlanExpiresAt`, không cần migration. |
+| D3 | Chưa làm | Hộp thoại Từ chối và Gia hạn thêm ở D2 vẫn viết inline theo kiểu cũ; D3 chuyển cùng phần còn lại. |
+| D4 | Chưa làm | |
+| D5 | Chưa làm | Phần SystemTenantService đã có test ở D2 (`BTL_WEB_NC.Tests/SystemArea`); D5 còn đăng ký, gói dịch vụ, phân quyền. |
+
 ## Danh sách lỗi còn lại
 
 | # | Mức | Chỗ | Lỗi | Bước |
