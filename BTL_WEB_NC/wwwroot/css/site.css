@@ -451,6 +451,19 @@ body.is-sidebar-open .sidebar { transform: none; box-shadow: var(--shadow-lg); }
 }
 .auth-title { font-size: 22px; }
 .auth-card .muted { margin: 4px 0 20px; }
+/* Đổi mật khẩu (MH18), đăng ký thành công (MH02) – Module 1 */
+.auth-alt { margin-top: 12px; }
+.auth-result { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.auth-result .muted { margin: 0; }
+.auth-result .alert { text-align: left; }
+.auth-result-icon {
+  width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--primary-soft); color: var(--primary); font-size: 26px; font-weight: 700;
+}
+.auth-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+@media (min-width: 768px) {
+  .auth-actions { flex-direction: row; justify-content: center; }
+}
 
 /* ================================================================ ≥ 768px – máy tính bảng */
 

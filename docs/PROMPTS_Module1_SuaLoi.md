@@ -22,7 +22,7 @@ vì CSP chỉ bật được khi view không còn script và style inline.
 |---|---|---|
 | D1 | Xong (05/11/2026) | Lỗi 1–3. Thêm `Infrastructure/Auth/` (middleware đổi mật khẩu, rate limit, `PostLoginRedirect`). |
 | D2 | Xong (05/11/2026) | Lỗi 4–8. Thêm endpoint A29 (`docs/EndpointBoSung.md`). Hết hạn gói tính theo `PlanExpiresAt`, không cần migration. |
-| D3 | Chưa làm | Hộp thoại Từ chối và Gia hạn thêm ở D2 vẫn viết inline theo kiểu cũ; D3 chuyển cùng phần còn lại. |
+| D3 | Xong (05/11/2026) | Lỗi 9–11. CSS ở `css/system/`, JS ở `js/system/`; dùng chung `js/manage/layout.js`, `ui.js` với Area Manage (thay cho `js/system/layout.js`). Đổi mật khẩu, đăng ký thành công chuyển sang `_AuthLayout`. Sửa kèm: `PlansController` trả lỗi validate dạng `data.errors`; `toast-region` thiếu id nên toast hiện bằng `alert()`. |
 | D4 | Chưa làm | |
 | D5 | Chưa làm | Phần SystemTenantService đã có test ở D2 (`BTL_WEB_NC.Tests/SystemArea`); D5 còn đăng ký, gói dịch vụ, phân quyền. |
 

@@ -1,6 +1,16 @@
 /* [AI] Claude hỗ trợ – Phụ lục Z.7 */
 /* MH06 – Quản lý Tenant (Module 1). Mobile-first: dưới 768px mỗi tenant là một thẻ (R33), từ 768px là bảng. */
 
+/* ---------------------------------------------------------------- Bộ lọc */
+
+.tenant-filter { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; margin-bottom: 16px; }
+.tenant-filter .search-field { grid-column: 1 / -1; }
+.tenant-filter label { display: block; min-width: 0; }
+.tenant-filter .btn { grid-column: 1 / -1; }
+
+/* Đang tải lại (lọc, chuyển trang): làm mờ danh sách cũ thay vì xóa trắng */
+#tenants-container.is-loading { opacity: 0.55; pointer-events: none; transition: opacity 0.15s; }
+
 /* ---------------------------------------------------------------- Danh sách: < 768px là thẻ */
 
 .tenant-panel { padding: 12px; }
@@ -12,7 +22,7 @@
 }
 .tenant-row td { display: block; padding: 0; }
 .tenant-row .col-name { min-width: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.tenant-row .col-status { align-self: start; }
+.tenant-row .col-status { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; align-self: start; }
 .tenant-row .col-detail { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
 .tenant-row .col-detail::before { content: attr(data-label); font-weight: 400; color: var(--text-2); flex: none; }
 .tenant-row .detail-value { text-align: right; min-width: 0; }
@@ -23,7 +33,7 @@
 .tenant-row .row-actions .btn { min-height: var(--tap); }
 
 .tenant-name { font-weight: 700; font-size: 15px; color: var(--text); overflow-wrap: anywhere; }
-.tenant-slug { font-size: 12px; color: var(--muted); font-family: monospace; overflow-wrap: anywhere; }
+.tenant-slug { font-size: 12px; color: var(--muted); font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
 .owner-name { font-weight: 500; }
 .owner-contact { font-size: 12px; font-weight: 400; color: var(--muted); overflow-wrap: anywhere; }
 .scale { font-size: 13px; font-weight: 500; color: var(--text-2); }
@@ -37,21 +47,20 @@
 .tenant-status.is-pending { background: #FFF8E1; color: #A85A00; }
 .tenant-status.is-locked { background: #FFEBEE; color: #C62828; }
 .tenant-status.is-rejected { background: #F5F5F5; color: #616161; }
-.tenant-status.is-expired { margin-top: 4px; background: var(--warn-bg); color: var(--danger); }
+.tenant-status.is-expired { background: var(--warn-bg); color: var(--danger); }
+.lock-reason { max-width: 200px; font-size: 12px; color: var(--text-2); text-align: right; overflow-wrap: anywhere; }
 .expiry-past { color: var(--danger); font-weight: 600; }
-.tenant-row .col-status { display: flex; flex-direction: column; align-items: flex-end; }
-.text-danger { color: var(--danger); }
 
 .tenant-pagination { display: flex; flex-direction: column; gap: 8px; align-items: center; padding-top: 4px; }
 .pagination-info { font-size: 13px; color: var(--text-2); }
 .pagination-pages { display: flex; flex-wrap: wrap; gap: 4px; }
 
-.tenant-empty { text-align: center; padding: 48px 16px; color: var(--muted); }
-.tenant-empty-icon { font-size: 32px; margin-bottom: 8px; }
-
 /* ---------------------------------------------------------------- Từ 768px: bảng */
 
 @media (min-width: 768px) {
+  .tenant-filter { grid-template-columns: minmax(0, 1fr) 200px 200px auto; align-items: center; padding: 16px; }
+  .tenant-filter .search-field, .tenant-filter .btn { grid-column: auto; }
+
   .tenant-panel { padding: 0; overflow-x: auto; }
   .tenant-table { display: table; border-collapse: collapse; text-align: left; font-size: 13px; }
   .tenant-table thead { display: table-header-group; }
@@ -64,11 +73,12 @@
   .tenant-row td { display: table-cell; padding: 14px 16px; vertical-align: middle; border-bottom: 1px solid var(--border); }
   .tenant-row .col-name { padding-bottom: 14px; }
   .tenant-row .col-detail, .tenant-row .col-status { display: table-cell; font-weight: 400; }
-  .tenant-status.is-expired { margin: 0 0 0 4px; }
   .tenant-row .col-detail::before { content: none; }
   .tenant-row .detail-value { text-align: left; }
+  .tenant-status.is-expired { margin-left: 4px; }
+  .lock-reason { display: block; margin-top: 4px; text-align: left; }
   .tenant-name { font-size: 14px; }
-  .col-actions { text-align: right; }
+  .tenant-table .col-actions { text-align: right; }
   .row-actions { display: inline-flex; gap: 6px; }
   .tenant-row .row-actions .btn { min-height: 36px; white-space: nowrap; }
 

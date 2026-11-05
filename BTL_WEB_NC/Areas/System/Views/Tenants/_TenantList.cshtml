@@ -1,13 +1,15 @@
 @* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
-@* Dưới 768px bảng chuyển thành thẻ (R33); CSS ở wwwroot/css/system/tenants.css *@
+@* Dưới 768px bảng chuyển thành thẻ (R33); CSS ở wwwroot/css/system/tenants.css; nút dùng data-action (js/system/tenants.js) *@
 @using BTL_WEB_NC.Models.Entities
 @model BTL_WEB_NC.Areas.System.Models.TenantPagedResult
 
 @if (Model.Items.Count == 0)
 {
-    <div class="card tenant-empty">
-        <div class="tenant-empty-icon" aria-hidden="true">🔍</div>
-        <div>Không tìm thấy quán nào phù hợp với bộ lọc.</div>
+    <div class="card">
+        <div class="state">
+            <span class="state-title">Không có quán nào phù hợp</span>
+            <span>Thử đổi từ khóa hoặc bấm "Đặt lại" để xem tất cả.</span>
+        </div>
     </div>
 }
 else
@@ -61,7 +63,7 @@ else
                                     <span class="tenant-status is-pending">● Chờ kích hoạt</span>
                                     break;
                                 case TenantStatus.Locked:
-                                    <span class="tenant-status is-locked" title="@t.LockReason">● Bị khóa</span>
+                                    <span class="tenant-status is-locked">● Bị khóa</span>
                                     break;
                                 case TenantStatus.Rejected:
                                     <span class="tenant-status is-rejected">● Từ chối</span>
@@ -71,25 +73,30 @@ else
                             {
                                 <span class="tenant-status is-expired">Hết hạn</span>
                             }
+                            @* Lý do khóa/từ chối hiện thẳng (không dùng title vì điện thoại không có hover) *@
+                            @if (!string.IsNullOrEmpty(t.LockReason))
+                            {
+                                <span class="lock-reason">@t.LockReason</span>
+                            }
                         </td>
                         <td class="col-actions">
                             <div class="row-actions">
                                 @if (t.Status == TenantStatus.PendingActivation)
                                 {
-                                    <button type="button" class="btn btn-primary btn-sm btn-action-status" data-id="@t.Id" data-status="1">Kích hoạt</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-reject text-danger" data-id="@t.Id" data-name="@t.Name">Từ chối</button>
+                                    <button type="button" class="btn btn-primary btn-sm" data-action="activate" data-id="@t.Id" data-name="@t.Name">Kích hoạt</button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-action="reject" data-id="@t.Id" data-name="@t.Name">Từ chối</button>
                                 }
                                 else if (t.Status == TenantStatus.Active)
                                 {
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-lock text-danger" data-id="@t.Id" data-name="@t.Name">Khóa quán</button>
+                                    <button type="button" class="btn btn-sm" data-action="plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
+                                    <button type="button" class="btn btn-sm" data-action="expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-action="lock" data-id="@t.Id" data-name="@t.Name">Khóa quán</button>
                                 }
                                 else if (t.Status == TenantStatus.Locked)
                                 {
-                                    <button type="button" class="btn btn-primary btn-sm btn-action-status" data-id="@t.Id" data-status="1">Mở khóa</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
-                                    <button type="button" class="btn btn-secondary btn-sm btn-open-expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
+                                    <button type="button" class="btn btn-primary btn-sm" data-action="activate" data-id="@t.Id" data-name="@t.Name">Mở khóa</button>
+                                    <button type="button" class="btn btn-sm" data-action="plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
+                                    <button type="button" class="btn btn-sm" data-action="expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
                                 }
                             </div>
                         </td>
@@ -107,7 +114,7 @@ else
                 <div class="pagination-pages">
                     @for (var p = 1; p <= Model.TotalPages; p++)
                     {
-                        <button type="button" class="page-btn @(p == Model.Page ? "is-current" : "")" data-page="@p"
+                        <button type="button" class="page-btn @(p == Model.Page ? "is-current" : "")" data-action="page" data-page="@p"
                                 aria-label="Trang @p" aria-current="@(p == Model.Page ? "page" : null)">@p</button>
                     }
                 </div>

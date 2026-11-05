@@ -30,10 +30,8 @@ public class PlansController : SystemControllerBase
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState
-                .Where(x => x.Value?.Errors.Count > 0)
-                .ToDictionary(k => k.Key, v => v.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
-            return BadRequest(ApiResult.Fail("Dữ liệu không hợp lệ.", errors));
+            // data.errors = { tenTruong: [...] } như mọi endpoint khác (mục 3.2.6) để ajax.js hiện lỗi tại từng ô.
+            return BadRequest(ApiResult.ValidationFailed(ModelState));
         }
 
         try
@@ -47,7 +45,7 @@ public class PlansController : SystemControllerBase
         }
         catch (FieldValidationException ex)
         {
-            return BadRequest(ApiResult.Fail(ex.Message, new Dictionary<string, string[]> { { ex.Field, new[] { ex.Message } } }));
+            return BadRequest(ApiResult.FieldError(ex.Field, ex.Message));
         }
     }
 

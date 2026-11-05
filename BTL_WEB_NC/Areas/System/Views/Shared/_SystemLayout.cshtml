@@ -1,8 +1,10 @@
 @* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D3: cùng khung với _ManageLayout, bỏ style/script inline) *@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var title = ViewData["Title"] as string ?? "Hệ thống Quản trị SaaS";
     var currentController = ViewContext.RouteData.Values["controller"] as string ?? "Dashboard";
+    var fullName = User.FindFirst(BTL_WEB_NC.Infrastructure.Tenancy.TenantClaimTypes.FullName)?.Value ?? "Super Admin";
 
     var nav = new[]
     {
@@ -23,6 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/system/system.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="manage system-area">
@@ -32,8 +35,8 @@
         <div class="sidebar-brand">
             <span class="brand-logo" aria-hidden="true">☕</span>
             <div class="brand-text">
-                <span class="brand-name">CAFESAAS</span>
-                <span class="brand-sub">SaaS System Admin</span>
+                <span class="brand-name">CafeSaaS</span>
+                <span class="brand-sub">Quản trị nền tảng</span>
             </div>
         </div>
 
@@ -48,14 +51,9 @@
             }
         </nav>
 
-        <div class="sidebar-foot" style="margin-top: auto; padding: 16px; border-top: 1px solid var(--sidebar-line);">
-            <div style="font-size: 12px; color: var(--sidebar-muted);">
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; display: inline-block;"></span>
-                    <span>Hệ thống ổn định</span>
-                </div>
-                <div>Production • Việt Nam</div>
-            </div>
+        <div class="sidebar-foot">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Super Admin</span>
         </div>
     </aside>
     <div class="sidebar-backdrop" data-sidebar-close hidden></div>
@@ -69,59 +67,46 @@
 
             <div class="topbar-brand">
                 <span class="brand-logo" aria-hidden="true">☕</span>
-                <span class="brand-name">CafeSaaS System</span>
+                <div class="brand-text">
+                    <span class="brand-name">CafeSaaS</span>
+                    <span class="brand-sub">Quản trị nền tảng</span>
+                </div>
             </div>
 
-            <nav class="breadcrumb-top" aria-label="Đường dẫn">
-                <a href="/system">Hệ thống</a>
-                <span aria-hidden="true">/</span>
-                <span aria-current="page">@title</span>
+            <nav class="breadcrumb breadcrumb-top" aria-label="Đường dẫn">
+                <a href="/system">Hệ thống</a><span class="breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">@title</span>
             </nav>
 
-            <div class="topbar-actions" style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
-                <div class="user-chip">
-                    <span class="user-avatar" aria-hidden="true">SA</span>
-                    <div class="user-text">
-                        <span class="user-name">Super Admin</span>
-                        <span class="user-role muted">Quản trị viên nền tảng</span>
-                    </div>
+            <details class="user-menu">
+                <summary aria-label="Tài khoản">
+                    <span class="user-text">
+                        <span class="user-name">@fullName</span>
+                        <span class="user-role">Super Admin</span>
+                    </span>
+                    <span class="avatar" aria-hidden="true">SA</span>
+                </summary>
+                <div class="user-dropdown">
+                    <form method="post" asp-area="" asp-controller="Account" asp-action="Logout">
+                        <button type="submit" class="menu-item">Đăng xuất</button>
+                    </form>
                 </div>
-
-                <form method="post" action="/dang-xuat" style="margin: 0;">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-secondary btn-sm" title="Đăng xuất khỏi hệ thống">
-                        Đăng xuất
-                    </button>
-                </form>
-            </div>
+            </details>
         </header>
 
         <main class="content" id="main">
+            <nav class="breadcrumb breadcrumb-inline" aria-label="Đường dẫn">
+                <a href="/system">Hệ thống</a><span class="breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">@title</span>
+            </nav>
             @RenderBody()
         </main>
-
-        <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
     </div>
 
+    <div class="toast-region" id="toast-region" role="status" aria-live="polite"></div>
+
+    @* Khung trang và hộp thoại dùng chung với Area Manage (cùng cấu trúc sidebar, dialog.modal, data-close). *@
     <script src="~/js/ajax.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var toggle = document.querySelector('[data-sidebar-toggle]');
-            var backdrop = document.querySelector('[data-sidebar-close]');
-            if (toggle && backdrop) {
-                toggle.addEventListener('click', function () {
-                    var open = document.body.classList.toggle('is-sidebar-open');
-                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    backdrop.hidden = !open;
-                });
-                backdrop.addEventListener('click', function () {
-                    document.body.classList.remove('is-sidebar-open');
-                    toggle.setAttribute('aria-expanded', 'false');
-                    backdrop.hidden = true;
-                });
-            }
-        });
-    </script>
+    <script src="~/js/manage/layout.js" asp-append-version="true"></script>
+    <script src="~/js/manage/ui.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

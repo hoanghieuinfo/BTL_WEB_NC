@@ -1,0 +1,15 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Hộp thoại xác nhận cho ManageUi.confirmAction (js/manage/ui.js), thay confirm() của trình duyệt. *@
+<dialog class="modal modal-sm modal-confirm" id="confirm-modal" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="modal-head">
+        <h2 class="modal-title" id="confirm-title" data-confirm-title></h2>
+        <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body">
+        <p id="confirm-message" data-confirm-message></p>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="btn" data-close>Hủy</button>
+        <button type="button" class="btn btn-primary" data-confirm-ok>Đồng ý</button>
+    </div>
+</dialog>

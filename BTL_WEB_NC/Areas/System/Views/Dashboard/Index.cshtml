@@ -1,278 +1,173 @@
 @* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
 @* [AI] Claude hỗ trợ – Phụ lục Z.7 (D2: modal từ chối có lý do, lọc và gia hạn gói hết hạn) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D3: bỏ style/script inline và Html.Raw; dữ liệu biểu đồ qua data-*, JS ở js/system/dashboard.js) *@
 @model BTL_WEB_NC.Areas.System.Models.SystemDashboardViewModel
 @{
     ViewData["Title"] = "Tổng quan hệ thống";
+    var year = BTL_WEB_NC.Infrastructure.VietnamTime.Now.Year;
+    var activePct = Model.TotalTenants > 0 ? Math.Round((double)Model.ActiveTenants / Model.TotalTenants * 100, 1) : 0;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/system/dashboard.css" asp-append-version="true" />
 }
 
 <div class="page-head">
     <div>
         <h1 class="page-title">Tổng quan hệ thống</h1>
-        <p class="page-subtitle muted">Theo dõi tăng trưởng, vận hành và kết nối mọi quán cà phê trên nền tảng.</p>
+        <p class="page-subtitle">Theo dõi tăng trưởng, vận hành và kết nối mọi quán cà phê trên nền tảng.</p>
     </div>
-    <div class="page-actions">
-        <span class="badge" style="background: var(--card); border: 1px solid var(--border); padding: 8px 14px; font-weight: 600;">
-            📅 Năm 2026
-        </span>
-    </div>
+    <span class="year-chip">Năm @year</span>
 </div>
 
-<!-- 4 thẻ chỉ số KPI (MH05, Hình 3.15) -->
-<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-    <div class="stat-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <span class="muted" style="font-size: 13px;">Tổng số quán (Tenants)</span>
-            <span style="font-size: 18px;">🏬</span>
-        </div>
-        <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--text);">@Model.TotalTenants</div>
-        <div style="font-size: 12px; color: var(--primary); font-weight: 500;">Toàn bộ hệ thống</div>
+@* Thẻ số liệu (MH05, Hình 3.15) *@
+<section class="sys-stats" aria-label="Số liệu toàn hệ thống">
+    <div class="card sys-stat">
+        <span class="stat-label">Tổng số quán</span>
+        <strong class="stat-value">@Model.TotalTenants</strong>
+        <span class="stat-note">Toàn bộ hệ thống</span>
     </div>
-
-    <div class="stat-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <span class="muted" style="font-size: 13px;">Quán đang hoạt động</span>
-            <span style="font-size: 18px;">✅</span>
-        </div>
-        <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--primary);">@Model.ActiveTenants</div>
-        <div style="font-size: 12px; color: var(--primary); font-weight: 500;">
-            @(Model.TotalTenants > 0 ? Math.Round((double)Model.ActiveTenants / Model.TotalTenants * 100, 1) : 0)% tổng số quán
-        </div>
+    <div class="card sys-stat">
+        <span class="stat-label">Quán đang hoạt động</span>
+        <strong class="stat-value is-primary">@Model.ActiveTenants</strong>
+        <span class="stat-note">@activePct.ToString(inv)% tổng số quán</span>
     </div>
-
-    <div class="stat-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <span class="muted" style="font-size: 13px;">Quán chờ kích hoạt</span>
-            <span style="font-size: 18px;">⏳</span>
-        </div>
-        <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--warn-text);">@Model.PendingTenants</div>
-        <div style="font-size: 12px; color: var(--warn-text); font-weight: 500;">Cần duyệt kích hoạt</div>
+    <div class="card sys-stat">
+        <span class="stat-label">Quán chờ kích hoạt</span>
+        <strong class="stat-value is-warn">@Model.PendingTenants</strong>
+        <span class="stat-note">Cần duyệt kích hoạt</span>
     </div>
-
-    <div class="stat-card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <span class="muted" style="font-size: 13px;">Quán bị khóa/từ chối</span>
-            <span style="font-size: 18px;">🔒</span>
-        </div>
-        <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--danger);">@Model.LockedTenants</div>
-        <div style="font-size: 12px; color: var(--muted); font-weight: 500;">Không dùng được dịch vụ</div>
+    <div class="card sys-stat">
+        <span class="stat-label">Quán bị khóa/từ chối</span>
+        <strong class="stat-value is-danger">@Model.LockedTenants</strong>
+        <span class="stat-note">Không dùng được dịch vụ</span>
     </div>
-
-    @* [AI] Claude hỗ trợ – Phụ lục Z.7: P02 bước 3 – đánh dấu quán hết hạn gói (tính theo PlanExpiresAt) *@
-    <a class="stat-card" href="/system/tenants?expired=true" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; color: inherit; text-decoration: none;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <span class="muted" style="font-size: 13px;">Hết hạn gói</span>
-            <span style="font-size: 18px;" aria-hidden="true">📅</span>
-        </div>
-        <div style="font-size: 32px; font-weight: 800; margin: 8px 0; color: var(--danger);">@Model.ExpiredTenants</div>
-        <div style="font-size: 12px; color: var(--muted); font-weight: 500;">Xem và gia hạn &rarr;</div>
+    @* P02 bước 3 – quán hết hạn gói (tính theo PlanExpiresAt) *@
+    <a class="card sys-stat is-link" href="/system/tenants?expired=true">
+        <span class="stat-label">Hết hạn gói</span>
+        <strong class="stat-value is-danger">@Model.ExpiredTenants</strong>
+        <span class="stat-note">Xem và gia hạn &rarr;</span>
     </a>
-</div>
+</section>
 
-<!-- 2 biểu đồ phân tích -->
-<div class="charts-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 24px;">
-    <div class="card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-        <h3 style="font-size: 16px; margin-bottom: 16px;">Số lượng Tenant đăng ký mới theo tháng (2026)</h3>
-        <div style="height: 240px; position: relative;">
-            <canvas id="chart-monthly"></canvas>
+@* Biểu đồ: số liệu đưa qua data-* (Razor mã hóa), dashboard.js đọc lại. Bảng ẩn bên dưới là bản chữ cho trình đọc màn hình. *@
+<section class="sys-charts">
+    <div class="card">
+        <h2 class="section-title" id="monthly-title">Quán đăng ký mới theo tháng (@year)</h2>
+        <div class="chart-box">
+            <canvas id="chart-monthly" aria-labelledby="monthly-title" role="img"
+                    data-labels="@string.Join(",", Model.MonthlyRegistrations.Select(m => "T" + m.Month))"
+                    data-values="@string.Join(",", Model.MonthlyRegistrations.Select(m => m.Count))"></canvas>
         </div>
     </div>
 
-    <div class="card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-        <h3 style="font-size: 16px; margin-bottom: 16px;">Tỷ lệ sử dụng gói dịch vụ</h3>
-        <div style="height: 240px; position: relative;">
-            <canvas id="chart-plans"></canvas>
-        </div>
+    <div class="card">
+        <h2 class="section-title" id="plans-title">Tỷ lệ sử dụng gói dịch vụ</h2>
+        @if (Model.PlanDistributions.Count == 0)
+        {
+            <div class="state"><span class="state-title">Chưa có quán nào</span><span>Biểu đồ sẽ hiện khi có quán đăng ký.</span></div>
+        }
+        else
+        {
+            <div class="chart-box">
+                <canvas id="chart-plans" aria-labelledby="plans-title" role="img"></canvas>
+            </div>
+            <ul class="plan-legend" id="plan-data">
+                @foreach (var p in Model.PlanDistributions)
+                {
+                    <li data-name="@p.PlanName" data-count="@p.Count" data-pct="@p.Percentage.ToString(inv)">
+                        Gói @p.PlanName: @p.Count quán (@p.Percentage.ToString(inv)%)
+                    </li>
+                }
+            </ul>
+        }
     </div>
-</div>
+</section>
 
-<!-- Bảng quán mới đăng ký cần duyệt nhanh -->
-<div class="card" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+@* Quán mới đăng ký cần duyệt nhanh *@
+<section class="card">
+    <div class="pending-head">
         <div>
-            <h3 style="font-size: 16px; display: inline-flex; align-items: center; gap: 8px;">
-                Quán mới đăng ký cần kích hoạt
-                <span class="badge" style="background: var(--warn-bg); color: var(--warn-text); padding: 2px 8px; border-radius: 999px; font-size: 12px;">@Model.PendingTenants</span>
-            </h3>
-            <p class="muted" style="font-size: 13px; margin-top: 2px;">Kiểm tra thông tin và phê duyệt để quán bắt đầu sử dụng.</p>
+            <h2 class="section-title">Quán mới đăng ký cần kích hoạt <span class="badge badge-warn">@Model.PendingTenants</span></h2>
+            <p class="page-subtitle">Kiểm tra thông tin và phê duyệt để quán bắt đầu sử dụng.</p>
         </div>
-        <a href="/system/tenants?status=0" class="btn btn-secondary btn-sm">Xem tất cả tenant &rarr;</a>
+        <a href="/system/tenants?status=0" class="btn btn-sm">Xem tất cả &rarr;</a>
     </div>
 
     @if (Model.RecentPendingTenants.Count == 0)
     {
-        <div style="text-align: center; padding: 32px 16px; color: var(--muted);">
-            🎉 Tuyệt vời! Hiện không có quán nào đang chờ kích hoạt.
+        <div class="state">
+            <span class="empty-icon" aria-hidden="true">✓</span>
+            <span class="state-title">Không có quán nào chờ kích hoạt</span>
+            <span>Quán mới đăng ký sẽ hiện ở đây để duyệt nhanh.</span>
         </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid var(--border); color: var(--text-2);">
-                        <th style="padding: 10px;">Tên quán</th>
-                        <th style="padding: 10px;">Đường dẫn</th>
-                        <th style="padding: 10px;">Chủ quán</th>
-                        <th style="padding: 10px;">Email</th>
-                        <th style="padding: 10px;">Gói</th>
-                        <th style="padding: 10px;">Ngày đăng ký</th>
-                        <th style="padding: 10px; text-align: right;">Hành động</th>
+        <table class="card-table">
+            <thead>
+                <tr>
+                    <th scope="col">Tên quán</th>
+                    <th scope="col">Đường dẫn</th>
+                    <th scope="col">Chủ quán</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Gói</th>
+                    <th scope="col">Ngày đăng ký</th>
+                    <th scope="col" class="col-actions">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.RecentPendingTenants)
+                {
+                    <tr class="card-row">
+                        <td class="col-title">@item.Name</td>
+                        <td class="col-detail mono" data-label="Đường dẫn">@item.Slug</td>
+                        <td class="col-detail" data-label="Chủ quán">@(item.OwnerName ?? "—")</td>
+                        <td class="col-detail" data-label="Email">@(item.OwnerEmail ?? "—")</td>
+                        <td class="col-detail" data-label="Gói"><span class="chip-plan">@item.PlanName</span></td>
+                        <td class="col-detail" data-label="Ngày đăng ký">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="col-actions">
+                            <div class="row-actions">
+                                <button type="button" class="btn btn-primary btn-sm" data-action="activate" data-id="@item.Id" data-name="@item.Name">Kích hoạt</button>
+                                <button type="button" class="btn btn-danger btn-sm" data-action="reject" data-id="@item.Id" data-name="@item.Name">Từ chối</button>
+                            </div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.RecentPendingTenants)
-                    {
-                        <tr style="border-bottom: 1px solid var(--border);">
-                            <td style="padding: 12px 10px; font-weight: 600;">@item.Name</td>
-                            <td style="padding: 12px 10px;"><code>@item.Slug</code></td>
-                            <td style="padding: 12px 10px;">@(item.OwnerName ?? "—")</td>
-                            <td style="padding: 12px 10px;">@(item.OwnerEmail ?? "—")</td>
-                            <td style="padding: 12px 10px;"><span class="badge" style="background: var(--primary-soft); color: var(--primary); padding: 2px 8px; border-radius: 4px;">@item.PlanName</span></td>
-                            <td style="padding: 12px 10px;">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td style="padding: 12px 10px; text-align: right;">
-                                <button type="button" class="btn btn-primary btn-sm btn-quick-action" data-id="@item.Id" data-status="1">Kích hoạt</button>
-                                <button type="button" class="btn btn-secondary btn-sm btn-quick-reject" data-id="@item.Id" data-name="@item.Name" style="color: var(--danger);">Từ chối</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     }
-</div>
+</section>
 
-<!-- Modal từ chối đăng ký: bắt buộc ghi lý do (P01 bước 5) -->
-<dialog id="modal-reject" class="modal-sm" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 0; background: var(--card); box-shadow: var(--shadow-lg);">
-    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
-        <h3 style="font-size: 16px; margin: 0; color: var(--danger);">Từ chối đăng ký</h3>
-        <button type="button" class="icon-btn" onclick="document.getElementById('modal-reject').close();">✕</button>
-    </div>
-    <div style="padding: 20px;">
-        <p style="font-size: 14px; margin-bottom: 12px;">Quán: <strong id="reject-tenant-name"></strong></p>
-        <div class="form-group">
-            <label class="form-label" for="reject-reason">Lý do từ chối <span class="text-danger">*</span></label>
-            <textarea id="reject-reason" class="input" style="height: 80px; resize: none;" maxlength="255" required></textarea>
-            <span class="field-error" id="reject-reason-error" style="display: none;"></span>
+@* Từ chối đăng ký: bắt buộc ghi lý do (P01 bước 5) *@
+<dialog class="modal modal-sm" id="reject-modal" aria-labelledby="reject-title">
+    <form class="modal-form" id="reject-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="reject-title">Từ chối đăng ký</h2>
+                <p class="modal-subtitle">Quán: <strong data-tenant-name></strong></p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
         </div>
-    </div>
-    <div style="padding: 14px 20px; background: #FAF8F5; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-reject').close();">Hủy</button>
-        <button type="button" id="btn-confirm-reject" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Từ chối</button>
-    </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="reject-reason">Lý do từ chối <span class="required">*</span></label>
+                <textarea class="textarea" id="reject-reason" name="lockReason" maxlength="255" required></textarea>
+                <span class="field-error" data-error-for="lockReason"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-danger-solid" data-submit>Từ chối</button>
+        </div>
+    </form>
 </dialog>
 
+<partial name="_ConfirmModal" />
+
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Biểu đồ đường Monthly Registrations
-            var monthlyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyRegistrations));
-            var ctxMonthly = document.getElementById('chart-monthly').getContext('2d');
-            new Chart(ctxMonthly, {
-                type: 'line',
-                data: {
-                    labels: monthlyData.map(d => 'T' + d.Month),
-                    datasets: [{
-                        label: 'Tenant đăng ký mới',
-                        data: monthlyData.map(d => d.Count),
-                        borderColor: '#2F6B4F',
-                        backgroundColor: 'rgba(47, 107, 79, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#2F6B4F'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 } }
-                    }
-                }
-            });
-
-            // Biểu đồ tròn Plan Distributions
-            var planData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PlanDistributions));
-            var ctxPlans = document.getElementById('chart-plans').getContext('2d');
-            new Chart(ctxPlans, {
-                type: 'doughnut',
-                data: {
-                    labels: planData.map(p => p.PlanName + ' (' + p.Percentage + '%)'),
-                    datasets: [{
-                        data: planData.map(p => p.Count),
-                        backgroundColor: ['#7CC49E', '#2F6B4F', '#2B1D16', '#EBC98A'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right' }
-                    }
-                }
-            });
-
-            // Từ chối: mở modal nhập lý do
-            var modalReject = document.getElementById('modal-reject');
-            var rejectName = document.getElementById('reject-tenant-name');
-            var rejectReason = document.getElementById('reject-reason');
-            var rejectErr = document.getElementById('reject-reason-error');
-            var btnConfirmReject = document.getElementById('btn-confirm-reject');
-            var rejectId = 0;
-
-            document.querySelectorAll('.btn-quick-reject').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    rejectId = this.getAttribute('data-id');
-                    rejectName.textContent = this.getAttribute('data-name');
-                    rejectReason.value = '';
-                    rejectErr.style.display = 'none';
-                    modalReject.showModal();
-                });
-            });
-
-            btnConfirmReject.addEventListener('click', async function () {
-                var reason = rejectReason.value.trim();
-                if (!reason) {
-                    rejectErr.textContent = 'Vui lòng nhập lý do từ chối.';
-                    rejectErr.style.display = 'block';
-                    return;
-                }
-                btnConfirmReject.disabled = true;
-                try {
-                    var res = await Ajax.postJson('/system/tenants/' + rejectId + '/status', { status: 3, lockReason: reason });
-                    if (res.success) {
-                        location.reload();
-                    }
-                } catch (err) {
-                    rejectErr.textContent = err.message || 'Thao tác thất bại.';
-                    rejectErr.style.display = 'block';
-                } finally {
-                    btnConfirmReject.disabled = false;
-                }
-            });
-
-            // Quick action kích hoạt
-            document.querySelectorAll('.btn-quick-action').forEach(function (btn) {
-                btn.addEventListener('click', async function () {
-                    var id = this.getAttribute('data-id');
-                    var status = parseInt(this.getAttribute('data-status'));
-
-                    if (!confirm('Bạn có chắc muốn kích hoạt quán này không?')) return;
-
-                    try {
-                        var res = await Ajax.postJson('/system/tenants/' + id + '/status', { status: status });
-                        if (res.success) {
-                            location.reload();
-                        }
-                    } catch (err) {
-                        alert(err.message || 'Thao tác thất bại.');
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/system/dashboard.js" asp-append-version="true"></script>
 }
