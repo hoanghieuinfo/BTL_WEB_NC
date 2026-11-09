@@ -77,4 +77,4 @@ Trang trả View đầy đủ (bổ sung Bảng 3.20 nếu thiếu):
 ## Bổ sung ngoài SPEC (Bảng 3.12 – Branches)
 
 - Cột `Code` (nvarchar, mặc định rỗng): mã viết tắt chi nhánh dùng trong số hóa đơn `HD-{Code}-{yyMMdd}-{số thứ tự}`. Chi nhánh cũ chưa có `Code` thì `OrderService` tính từ tên bằng `BranchCode.FromName` ("Cầu Giấy" → "CG"). `Code` chưa bắt buộc duy nhất trong tenant; số hóa đơn vẫn duy nhất theo từng chi nhánh.
-- A12 (`POST /pos/orders`): chi nhánh đang "Tạm ngưng" (`IsActive = false`) không mở được đơn mới, trả 400. Đơn đang phục vụ vẫn thêm món và thanh toán bình thường. SPEC chưa quy định; nhóm đã chọn cách này.
+- A12 (`POST /pos/orders/open`): chi nhánh đang "Tạm ngưng" (`IsActive = false`) không mở được đơn mới, trả 400. Đơn đang phục vụ vẫn thêm món và thanh toán bình thường. SPEC chưa quy định; nhóm đã chọn cách này.

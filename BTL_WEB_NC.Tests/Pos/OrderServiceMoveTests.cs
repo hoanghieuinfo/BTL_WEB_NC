@@ -302,7 +302,7 @@ public class OrderServiceMoveTests
         using var check = testDb.CreateContext(tenantId: null);
         var others = await check.Orders.IgnoreQueryFilters().Where(o => o.Id == ids.OrderHk || o.Id == ids.OrderB).Include(o => o.Items).ToListAsync();
         Assert.Equal(2, others.Count);
-        Assert.All(others, o => Assert.Equal(1, o.Items.Count));
+        Assert.All(others, o => Assert.Single(o.Items));
     }
 
     [Fact]
