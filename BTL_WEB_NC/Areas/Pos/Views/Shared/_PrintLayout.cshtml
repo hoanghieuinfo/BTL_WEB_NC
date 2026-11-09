@@ -1,0 +1,20 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* Layout riêng của MH16 (in phiếu): không có thanh điều hướng POS, khổ giấy nhiệt 80mm. Thanh công cụ chỉ hiện trên màn hình, không in. *@
+@{
+    var title = ViewData["Title"] as string ?? "In phiếu";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@title</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pos/print.css" asp-append-version="true" />
+</head>
+<body class="print-page">
+    @RenderBody()
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

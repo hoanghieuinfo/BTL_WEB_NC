@@ -47,7 +47,34 @@ Area System đọc mọi tenant (mục 3.2.2c), nên tenant không tồn tại t
 
 | Mã | Phương thức, đường dẫn | Mục đích | Kết quả | Yêu cầu |
 |---|---|---|---|---|
-| A29 | POST /system/tenants/{id}/expiry | MH06: gia hạn gói (P02 bước 3), body `{ planExpiresAt: "yyyy-MM-dd" }`. Ngày phải sau hôm nay (400, `data.errors.planExpiresAt`); chỉ quán Hoạt động hoặc Bị khóa (400) | JSON | R08 |
+| A31 | POST /system/tenants/{id}/expiry | MH06: gia hạn gói (P02 bước 3), body `{ planExpiresAt: "yyyy-MM-dd" }`. Ngày phải sau hôm nay (400, `data.errors.planExpiresAt`); chỉ quán Hoạt động hoặc Bị khóa (400) | JSON | R08 |
 
 Bổ sung tham số cho A03 (`GET /system/tenants/list`): `expired=true` chỉ trả quán có `PlanExpiresAt` trước hôm nay
 (đánh dấu hết hạn gói, P02 bước 3; không có trạng thái riêng trong `TenantStatus`).
+
+## Area Pos (bán hàng) – endpoint và trang bổ sung cho Bảng 3.20, 3.21
+
+Điều kiện chung: chỉ vai trò `Staff`; `TenantId`, `BranchId`, thu ngân lấy từ claim, không nhận từ request. Đơn, bàn, món thuộc chi nhánh khác
+hoặc quán khác trả **404**. POST gửi anti-forgery token trong header `RequestVerificationToken`. Xung đột (bàn đã có khách, đơn đã thanh toán ở máy khác,
+RowVersion cũ) trả **409**.
+
+Hai chỗ khác Bảng 3.21: A15 tách thành hai đường dẫn (`/transfer` và `/merge`) vì hai thao tác có nghiệp vụ và thông báo khác nhau;
+`MH15` gửi thêm `RowVersion` trong body của A16.
+
+| Mã | Phương thức, đường dẫn | Mục đích | Kết quả | Yêu cầu |
+|---|---|---|---|---|
+| A15 | POST /pos/orders/{id}/transfer, /{id}/merge | Thay cho `/move` của Bảng 3.21: chuyển đơn sang bàn trống; gộp đơn vào đơn đang phục vụ của bàn khác (một transaction) | JSON | R25 |
+| A29 | POST /pos/orders/{id}/provisional | MH15: tạm tính – bàn sang Chờ thanh toán (không body); trình duyệt mở trang in phiếu tạm tính | JSON | R27 |
+| A30 | POST /pos/orders/{id}/cancel | MH15: hủy cả đơn; đơn đã có món chưa hủy thì bắt buộc lý do; đơn Cancelled, bàn về Trống | JSON | R25 |
+
+Trang trả View đầy đủ (bổ sung Bảng 3.20 nếu thiếu):
+
+| Phương thức | Đường dẫn | Mục đích | Yêu cầu |
+|---|---|---|---|
+| GET | `/pos/orders/{id}/print` | MH16: phiếu tạm tính (đơn Đang phục vụ) hoặc hóa đơn BM06 (đơn Đã thanh toán), khổ 80mm, tự in; đơn đã hủy trả 404; không đổi dữ liệu | R27 |
+| GET | `/pos/invoices` | MH17: hóa đơn Đã thanh toán trong ngày (giờ Việt Nam) của chi nhánh, mới nhất trước, kèm tổng doanh thu; mỗi dòng có "Xem" (`/pos/orders/{id}`) và "In lại" (`/pos/orders/{id}/print`). Ngày do server tính, không nhận từ request; render phía server, không AJAX | R28 |
+
+## Bổ sung ngoài SPEC (Bảng 3.12 – Branches)
+
+- Cột `Code` (nvarchar, mặc định rỗng): mã viết tắt chi nhánh dùng trong số hóa đơn `HD-{Code}-{yyMMdd}-{số thứ tự}`. Chi nhánh cũ chưa có `Code` thì `OrderService` tính từ tên bằng `BranchCode.FromName` ("Cầu Giấy" → "CG"). `Code` chưa bắt buộc duy nhất trong tenant; số hóa đơn vẫn duy nhất theo từng chi nhánh.
+- A12 (`POST /pos/orders/open`): chi nhánh đang "Tạm ngưng" (`IsActive = false`) không mở được đơn mới, trả 400. Đơn đang phục vụ vẫn thêm món và thanh toán bình thường. SPEC chưa quy định; nhóm đã chọn cách này.

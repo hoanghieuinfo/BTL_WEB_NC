@@ -6,6 +6,7 @@
 | Mục | Ngày | Người dùng | Công cụ | Nội dung hỗ trợ | Vị trí sử dụng |
 |---|---|---|---|---|---|
 | Z.7 | 21/10/2026 | Hoàng Minh Hiếu | Claude Code; Claude | Lập trình Module 2 – Quản trị quán (Bước 1a–7 trong docs/PROMPTS.md), viết kiểm thử, soạn tài liệu kỹ thuật và nháp Chương 4 | Mã nguồn Area Manage, Infrastructure (khung tạm), test, docs/; Chương 4 mục của Hiếu |
+| Z.7 | 01/11/2026 | Trung | Claude Code; Claude | Lập trình Module 3 – Bán hàng (Bước 1–11 trong docs/KeHoach_Module3_Trung.md), viết kiểm thử, cập nhật tài liệu kỹ thuật | Mã nguồn Area Pos, test, docs/ |
 
 ## Z.7. Lập trình Module 2 – Quản trị quán
 
@@ -23,3 +24,20 @@
 | Vị trí sử dụng | Mã nguồn: `BTL_WEB_NC/Areas/Manage/`, `BTL_WEB_NC/Infrastructure/` (khung tạm thay cho Module 1), `BTL_WEB_NC/Data/`, `BTL_WEB_NC/wwwroot/js/`, `BTL_WEB_NC/wwwroot/css/`; kiểm thử: `BTL_WEB_NC.Tests/`; tài liệu: `docs/`; báo cáo: Chương 4, mục của Hoàng Minh Hiếu. |
 | Minh chứng |  |
 | Tuân thủ quy tắc | AUR.01: Hiếu duyệt kế hoạch trước mỗi bước lớn; sau mỗi bước Claude giải thích bằng tiếng Việt các quyết định quan trọng (lọc tenant ở đâu, vì sao trả 404…) để Hiếu nắm và trả lời được khi bảo vệ. AUR.03: mọi file Claude tạo hoặc sửa đáng kể có comment `[AI] Claude hỗ trợ – Phụ lục Z.7` ở đầu file; commit có tiền tố `[AI]`. Ngoại lệ: commit d1edac7 (Bước 1a) có dùng Claude nhưng thiếu tiền tố `[AI]` do sơ suất; các file của commit này vẫn có comment `[AI]`. AUR.04: [Hiếu bổ sung]. AUR.99: footnote tại [Hiếu bổ sung]. |
+
+## Z.7 (tiếp). Lập trình Module 3 – Bán hàng (Area Pos)
+
+| Thông tin | Nội dung |
+|---|---|
+| Ngày sử dụng | 01/11/2026 (các bước 1–11 trong docs/KeHoach_Module3_Trung.md) |
+| Người sử dụng | Trung (Module 3) – [bổ sung họ tên đầy đủ] |
+| Công cụ, phiên bản | Claude (Anthropic), mô hình Claude Sonnet 5.5 qua Claude Code |
+| Mục đích | Hỗ trợ lập trình Module 3: MH14 Sơ đồ bàn, MH15 Đơn hàng và thanh toán, MH16 In phiếu/hóa đơn, MH17 Hóa đơn trong ngày (R22–R28, R30), bám docs/SPEC.md và CLAUDE.md. |
+| Nội dung yêu cầu | Bước 1–11 trong docs/KeHoach_Module3_Trung.md: nối sơ đồ bàn với A12; trang đơn hàng; A11 tìm món; A13 thêm món; A14 hủy món; A15 chuyển và gộp bàn; A29 tạm tính, A30 hủy đơn; A16 thanh toán và trừ kho; MH16 in phiếu (khổ 80mm); MH17 hóa đơn trong ngày; hoàn thiện, kiểm thử, cập nhật tài liệu. |
+| Kết quả AI trả về | Mã C#/Razor/CSS/JS trong `Areas/Pos/`, `wwwroot/js/pos/`, `wwwroot/css/pos/`; test xUnit trong `BTL_WEB_NC.Tests/Pos/` (có test cô lập tenant/chi nhánh, thanh toán hai lần, hóa đơn trong ngày); cập nhật docs/EndpointBoSung.md (A15 tách `/transfer`, `/merge`; A29, A30; trang print và invoices). `dotnet build` thành công (còn 1 cảnh báo CS0105 trùng using ở Data/SeedData.cs có từ trước). Kết quả `dotnet test` và kiểm tra giao diện 360/768/1280px: [Trung bổ sung sau khi chạy]. |
+| Phần nhóm giữ lại |  |
+| Phần nhóm chỉnh sửa |  |
+| Phần nhóm loại bỏ |  |
+| Vị trí sử dụng | `BTL_WEB_NC/Areas/Pos/`, `BTL_WEB_NC/wwwroot/js/pos/`, `BTL_WEB_NC/wwwroot/css/pos/`, `BTL_WEB_NC.Tests/Pos/`, `docs/`. |
+| Minh chứng |  |
+| Tuân thủ quy tắc | AUR.01: Trung duyệt từng bước và nhận giải thích các quyết định (trả 404 thay vì 403, tính tiền ở server, RowVersion chống thanh toán trùng, lọc ngày bằng khoảng nửa mở). AUR.03: file Claude tạo hoặc sửa có comment `[AI] Claude hỗ trợ – Phụ lục Z.7`. AUR.04, AUR.99: [bổ sung]. |

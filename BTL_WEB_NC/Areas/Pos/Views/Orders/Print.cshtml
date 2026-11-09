@@ -1,0 +1,115 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+@* MH16 – In phiếu tạm tính và hóa đơn BM06 (R27). Khổ 80mm, tự gọi window.print() (print.js). Tham khảo bố cục _OrderDetail.cshtml của Manage (MH13).
+   Mọi dữ liệu in ra qua Razor nên đã được mã hóa HTML. Mã QR thực đơn ở chân hóa đơn là tùy chọn (BM06) nên chưa có. *@
+@model PrintOrderDto
+@using System.Globalization
+@{
+    Layout = "_PrintLayout";
+
+    var vn = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal v) => v.ToString("N0", vn) + " đ";
+
+    var isInvoice = Model.IsInvoice;
+    var heading = isInvoice ? "HÓA ĐƠN THANH TOÁN" : "PHIẾU TẠM TÍNH";
+    ViewData["Title"] = (isInvoice ? "Hóa đơn " : "Phiếu tạm tính ") + Model.Code;
+    var discountPercent = Model.SubTotal > 0 && Model.Discount > 0
+        ? Math.Round(Model.Discount * 100 / Model.SubTotal, 0, MidpointRounding.AwayFromZero) : 0;
+    var discountLabel = Model.Discount > 0 ? $"Giảm giá (-{discountPercent}%):" : "Giảm giá:";
+}
+
+@* Thanh công cụ: chỉ hiện trên màn hình (CSS ẩn khi in). *@
+<div class="print-tools" id="print-tools">
+    <a class="btn" href="/pos/orders/@Model.Id">← Quay lại đơn</a>
+    <a class="btn" href="/pos">Sơ đồ bàn</a>
+    <button type="button" class="btn btn-primary" id="print-now">In lại</button>
+</div>
+
+<main class="slip" id="slip" data-auto-print="true" aria-label="@heading">
+    <header class="slip-head">
+        <p class="slip-shop">@Model.TenantName</p>
+        <p class="slip-branch">Chi nhánh @Model.BranchName</p>
+        <p class="slip-addr">@Model.BranchAddress</p>
+        @if (!string.IsNullOrWhiteSpace(Model.BranchPhone))
+        {
+            <p class="slip-addr">ĐT: @Model.BranchPhone</p>
+        }
+        <h1 class="slip-title">@heading</h1>
+        @if (!isInvoice)
+        {
+            <p class="slip-note">Chưa phải hóa đơn thanh toán</p>
+        }
+    </header>
+
+    <dl class="slip-facts">
+        <div><dt>Số hóa đơn:</dt><dd>@Model.Code</dd></div>
+        <div><dt>@(isInvoice ? "Ngày giờ:" : "Giờ in:")</dt><dd>@Model.Time.ToString("dd/MM/yyyy HH:mm")</dd></div>
+        <div><dt>Bàn:</dt><dd>@Model.TableName (@Model.ZoneName)</dd></div>
+        @if (Model.GuestCount.HasValue)
+        {
+            <div><dt>Số khách:</dt><dd>@Model.GuestCount</dd></div>
+        }
+        <div><dt>@(isInvoice ? "Thu ngân:" : "Nhân viên:")</dt><dd>@Model.StaffName</dd></div>
+    </dl>
+
+    <ol class="slip-lines">
+        @for (var i = 0; i < Model.Lines.Count; i++)
+        {
+            var line = Model.Lines[i];
+            <li class="slip-line">
+                <span class="slip-line-name">@(i + 1). @line.Name</span>
+                @if (!string.IsNullOrWhiteSpace(line.Note))
+                {
+                    <span class="slip-line-note">(@line.Note)</span>
+                }
+                <span class="slip-line-calc">
+                    <span>@line.Quantity × @line.UnitPrice.ToString("N0", vn)</span>
+                    <span class="slip-line-amount">@Money(line.Amount)</span>
+                </span>
+            </li>
+        }
+    </ol>
+
+    <dl class="slip-total">
+        <div><dt>@(isInvoice ? "Tổng tiền hàng:" : "Tổng tạm tính:")</dt><dd>@Money(Model.SubTotal)</dd></div>
+        @if (isInvoice)
+        {
+            <div>
+                <dt>@discountLabel</dt>
+                <dd>@(Model.Discount > 0 ? "-" : "")@Money(Model.Discount)</dd>
+            </div>
+            @if (Model.Discount > 0 && !string.IsNullOrWhiteSpace(Model.DiscountReason))
+            {
+                <div class="slip-reason"><dt>Lý do:</dt><dd>@Model.DiscountReason</dd></div>
+            }
+        }
+        <div class="slip-grand"><dt>@(isInvoice ? "TỔNG THANH TOÁN:" : "TỔNG CỘNG:")</dt><dd>@Money(Model.Total)</dd></div>
+        @if (isInvoice)
+        {
+            <div><dt>Hình thức:</dt><dd>@(Model.PaymentMethod switch { PaymentMethod.Cash => "Tiền mặt", PaymentMethod.BankTransfer => "Chuyển khoản", _ => "–" })</dd></div>
+            @if (Model.CashReceived.HasValue)
+            {
+                <div><dt>Tiền khách đưa:</dt><dd>@Money(Model.CashReceived.Value)</dd></div>
+            }
+            @if (Model.Change.HasValue)
+            {
+                <div><dt>Tiền thừa:</dt><dd>@Money(Model.Change.Value)</dd></div>
+            }
+        }
+    </dl>
+
+    <footer class="slip-foot">
+        @if (isInvoice)
+        {
+            <p>Cảm ơn quý khách. Hẹn gặp lại!</p>
+        }
+        else
+        {
+            <p>Vui lòng thanh toán tại quầy.</p>
+            <p>Cảm ơn quý khách!</p>
+        }
+    </footer>
+</main>
+
+@section Scripts {
+    <script src="~/js/pos/print.js" asp-append-version="true"></script>
+}

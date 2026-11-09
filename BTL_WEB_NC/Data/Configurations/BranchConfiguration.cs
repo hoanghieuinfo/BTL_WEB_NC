@@ -15,6 +15,7 @@ public class BranchConfiguration : IEntityTypeConfiguration<Branch>
 
         b.Property(x => x.Name).HasMaxLength(100).IsRequired();
         b.Property(x => x.Slug).HasMaxLength(60).IsUnicode(false).IsRequired();
+        b.Property(x => x.Code).HasMaxLength(10).IsUnicode(false).IsRequired();
         b.Property(x => x.Address).HasMaxLength(255).IsRequired();
         b.Property(x => x.Phone).HasMaxLength(15).IsUnicode(false);
 

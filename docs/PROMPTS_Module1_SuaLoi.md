@@ -21,7 +21,7 @@ vì CSP chỉ bật được khi view không còn script và style inline.
 | Bước | Trạng thái | Ghi chú |
 |---|---|---|
 | D1 | Xong (05/11/2026) | Lỗi 1–3. Thêm `Infrastructure/Auth/` (middleware đổi mật khẩu, rate limit, `PostLoginRedirect`). |
-| D2 | Xong (05/11/2026) | Lỗi 4–8. Thêm endpoint A29 (`docs/EndpointBoSung.md`). Hết hạn gói tính theo `PlanExpiresAt`, không cần migration. |
+| D2 | Xong (05/11/2026) | Lỗi 4–8. Thêm endpoint A31 (`docs/EndpointBoSung.md`; ban đầu đặt A29, đổi ở T2 vì trùng mã tạm tính của Area Pos). Hết hạn gói tính theo `PlanExpiresAt`, không cần migration. |
 | D3 | Xong (05/11/2026) | Lỗi 9–11. CSS ở `css/system/`, JS ở `js/system/`; dùng chung `js/manage/layout.js`, `ui.js` với Area Manage (thay cho `js/system/layout.js`). Đổi mật khẩu, đăng ký thành công chuyển sang `_AuthLayout`. Sửa kèm: `PlansController` trả lỗi validate dạng `data.errors`; `toast-region` thiếu id nên toast hiện bằng `alert()`. |
 | D4 | Xong (05/11/2026) | Lỗi 12–15. CSP thêm `blob:` vào `img-src` (ảnh xem trước MH10). Đã thử bằng Edge headless ở 360px và 768px: 16 trang (Module 1 và MH08–MH13) không có vi phạm CSP, lỗi console hay lỗi JS. Sửa kèm: header landing tràn 61px ở 360px. Còn lại (Module 2): nút ⋯ trên thẻ nhân viên MH11 tràn 8px ở 360px. |
 | D5 | Xong (05/11/2026) | Lỗi 16. Test ở `BTL_WEB_NC.Tests/SystemArea` (không đặt tên `System` vì namespace `BTL_WEB_NC.Tests.System` che namespace `System` của .NET). Thêm 36 test: đăng ký (kể cả rollback khi tạo tài khoản lỗi), lọc/phân trang/đổi gói, gói dịch vụ, phân quyền Area System. Tổng 242 test qua. |
@@ -87,7 +87,7 @@ Prompt dưới đây đã điền sẵn hai quyết định này.
    - TenantSummaryDto thêm IsExpired (tính trong service). _TenantList hiện nhãn "Hết hạn" cạnh trạng thái; ngày hết hạn tô màu --danger.
    - Bộ lọc A03 thêm tham số expired=true (chỉ tenant đã hết hạn), lọc bằng truy vấn EF, không lọc sau khi đã tải về bộ nhớ. Thêm lựa chọn "Hết hạn gói" vào ô lọc ở Tenants/Index.
    - MH05: thêm thẻ số liệu "Hết hạn gói".
-   - Nút "Gia hạn" (tenant Hoạt động hoặc Bị khóa) mở hộp thoại chọn ngày hết hạn mới. Endpoint mới POST /system/tenants/{id}/expiry nhận { planExpiresAt }; ngày phải sau hôm nay, nếu không thì 400 với data.errors.planExpiresAt; tenant không tồn tại thì 404. Ghi endpoint này vào docs/EndpointBoSung.md (mã A29, theo mẫu các dòng A17–A28).
+   - Nút "Gia hạn" (tenant Hoạt động hoặc Bị khóa) mở hộp thoại chọn ngày hết hạn mới. Endpoint mới POST /system/tenants/{id}/expiry nhận { planExpiresAt }; ngày phải sau hôm nay, nếu không thì 400 với data.errors.planExpiresAt; tenant không tồn tại thì 404. Ghi endpoint này vào docs/EndpointBoSung.md (mã A31, theo mẫu các dòng A17–A28; A29, A30 đã thuộc Area Pos).
 5. TenantRegistrationService: tài khoản chủ quán để BranchId = null như SeedData. Rà Area Manage xem có chỗ nào cần BranchId của TenantAdmin không; nếu có thì báo lại, không tự sửa Area Manage.
 6. Test xUnit: hạ gói khi tenant có 1 chủ quán + MaxStaff nhân viên thì được phép; vượt thì bị chặn; Từ chối không có lý do thì 400; chuyển trạng thái sai thì 400; khóa tenant thì SecurityStamp mọi tài khoản đổi; lọc expired=true chỉ ra tenant có PlanExpiresAt trước hôm nay; gia hạn về ngày quá khứ thì bị từ chối, ngày hợp lệ thì lưu đúng.
 ```

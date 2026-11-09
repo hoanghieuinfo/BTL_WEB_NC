@@ -105,7 +105,7 @@ public class ServicePlanFormModel
     public bool IsActive { get; set; } = true;
 }
 
-/// <summary>A29 – Gia hạn gói cho tenant (P02 bước 3).</summary>
+/// <summary>A31 – Gia hạn gói cho tenant (P02 bước 3).</summary>
 public class ExtendTenantExpiryRequest
 {
     [Required(ErrorMessage = "Vui lòng chọn ngày hết hạn mới.")]

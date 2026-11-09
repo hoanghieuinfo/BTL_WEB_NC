@@ -1,0 +1,26 @@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 *@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <meta name="description" content="@ViewData["Description"]" />
+    <meta name="robots" content="@(ViewData["Robots"] ?? "index, follow")" />
+    @if (ViewData["Canonical"] is string canonical)
+    {
+        <link rel="canonical" href="@canonical" />
+        <meta property="og:url" content="@canonical" />
+    }
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:title" content="@ViewData["Title"]" />
+    <meta property="og:description" content="@ViewData["Description"]" />
+    <link rel="icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/css/public-menu.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+    @RenderBody()
+</body>
+</html>

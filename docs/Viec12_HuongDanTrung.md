@@ -4,6 +4,10 @@
 Hiếu (Module 2) đã làm xong service trừ kho. Bạn gọi nó **bên trong transaction** của action thanh toán
 A16 `POST /pos/orders/{id}/pay`. Tài liệu này mô tả service hứa gì, bạn cần làm gì và có đoạn code mẫu.
 
+> **Trạng thái:** đã nối xong ở Module 3. `PaymentService.PayAsync` (A16) gọi `DeductForOrderAsync` trong một transaction cùng việc đặt
+> `Paid`, `PaidAt = VietnamTime.Now`, đưa bàn về Trống; xung đột RowVersion trả 409. Test tích hợp nằm ở
+> `BTL_WEB_NC.Tests/Pos/PaymentServiceTests.cs` (thanh toán lần hai trả 409 và chỉ trừ kho một lần). Mục 4.4 bên dưới đã được thực hiện.
+
 ## 1. Chữ ký
 
 ```csharp
