@@ -1,5 +1,5 @@
 // [AI] Claude hỗ trợ – Phụ lục Z.7
-// MH06 – Quản lý tenant: tải danh sách (A03), kích hoạt/mở khóa, khóa/từ chối có lý do (A04), đổi gói (A05), gia hạn (A29).
+// MH06 – Quản lý tenant: tải danh sách (A03), kích hoạt/mở khóa, khóa/từ chối có lý do (A04), đổi gói (A05), gia hạn (A31).
 (function () {
   "use strict";
 

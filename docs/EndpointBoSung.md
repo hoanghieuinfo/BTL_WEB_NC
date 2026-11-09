@@ -47,7 +47,7 @@ Area System đọc mọi tenant (mục 3.2.2c), nên tenant không tồn tại t
 
 | Mã | Phương thức, đường dẫn | Mục đích | Kết quả | Yêu cầu |
 |---|---|---|---|---|
-| A29 | POST /system/tenants/{id}/expiry | MH06: gia hạn gói (P02 bước 3), body `{ planExpiresAt: "yyyy-MM-dd" }`. Ngày phải sau hôm nay (400, `data.errors.planExpiresAt`); chỉ quán Hoạt động hoặc Bị khóa (400) | JSON | R08 |
+| A31 | POST /system/tenants/{id}/expiry | MH06: gia hạn gói (P02 bước 3), body `{ planExpiresAt: "yyyy-MM-dd" }`. Ngày phải sau hôm nay (400, `data.errors.planExpiresAt`); chỉ quán Hoạt động hoặc Bị khóa (400) | JSON | R08 |
 
 Bổ sung tham số cho A03 (`GET /system/tenants/list`): `expired=true` chỉ trả quán có `PlanExpiresAt` trước hôm nay
 (đánh dấu hết hạn gói, P02 bước 3; không có trạng thái riêng trong `TenantStatus`).

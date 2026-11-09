@@ -93,7 +93,7 @@ public class TenantsController : SystemControllerBase
     }
 
     // [AI] Claude hỗ trợ – Phụ lục Z.7
-    // POST /system/tenants/{id}/expiry – AJAX A29 (EndpointBoSung.md): gia hạn gói, P02 bước 3
+    // POST /system/tenants/{id}/expiry – AJAX A31 (EndpointBoSung.md): gia hạn gói, P02 bước 3
     [HttpPost("system/tenants/{id:int}/expiry")]
     public async Task<IActionResult> ExtendExpiry(int id, [FromBody] ExtendTenantExpiryRequest model, CancellationToken ct)
     {
