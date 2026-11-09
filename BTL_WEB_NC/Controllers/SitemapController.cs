@@ -1,33 +1,40 @@
 // [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt)
-using BTL_WEB_NC.Data;
-using BTL_WEB_NC.Models.Entities;
+// [AI] Claude hỗ trợ – Phụ lục Z.7 (T1: nơi duy nhất phục vụ robots.txt, sitemap.xml; danh sách chi nhánh lấy từ PublicMenuService)
+using BTL_WEB_NC.Areas.Public.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 namespace BTL_WEB_NC.Controllers;
 
+/// <summary>
+/// R32, R33: robots.txt và sitemap.xml. Chỉ controller này khai báo hai đường dẫn đó (trước đây Area Public có SeoController
+/// trùng route; action có [HttpGet] được ưu tiên nên bản này bị che mà không báo lỗi).
+/// </summary>
 public class SitemapController : Controller
 {
-    private readonly AppDbContext _db;
+    private readonly IPublicMenuService _publicMenu;
+    private readonly IConfiguration _config;
 
-    public SitemapController(AppDbContext db)
+    public SitemapController(IPublicMenuService publicMenu, IConfiguration config)
     {
-        _db = db;
+        _publicMenu = publicMenu;
+        _config = config;
     }
+
+    /// <summary>
+    /// PublicSite:BaseUrl nếu có cấu hình, không thì scheme://host của request – cùng quy tắc với mã QR (BranchQrService),
+    /// để link trong sitemap trùng với link in trên QR đặt tại bàn.
+    /// </summary>
+    private string BaseUrl =>
+        (_config["PublicSite:BaseUrl"] is { Length: > 0 } configured ? configured : $"{Request.Scheme}://{Request.Host}").TrimEnd('/');
 
     [Route("sitemap.xml")]
     public async Task<IActionResult> Sitemap(CancellationToken ct)
     {
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        var baseUrl = BaseUrl;
 
-        // Bỏ qua bộ lọc Query Filter để đọc danh sách chi nhánh của tất cả tenant đang hoạt động (R32, mục 3.2.2c)
-        var activeBranches = await (
-            from b in _db.Branches.IgnoreQueryFilters()
-            join t in _db.Tenants on b.TenantId equals t.Id
-            where b.IsActive && t.Status == TenantStatus.Active
-            select new { TenantSlug = t.Slug, BranchSlug = b.Slug }
-        ).ToListAsync(ct);
+        // Chi nhánh đang mở của tenant đang hoạt động. Truy vấn bỏ bộ lọc tenant (mục 3.2.2c) nằm trong PublicMenuService.
+        var activeBranches = await _publicMenu.ListSitemapEntriesAsync(ct);
 
         var sb = new StringBuilder();
         sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -71,7 +78,7 @@ public class SitemapController : Controller
             sb.AppendLine($"Disallow: {path}");
         }
         sb.AppendLine();
-        sb.AppendLine($"Sitemap: {Request.Scheme}://{Request.Host}/sitemap.xml");
+        sb.AppendLine($"Sitemap: {BaseUrl}/sitemap.xml");
         return Content(sb.ToString(), "text/plain", Encoding.UTF8);
     }
 }
