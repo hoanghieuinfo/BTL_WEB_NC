@@ -1,0 +1,124 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* Dưới 768px bảng chuyển thành thẻ (R33); CSS ở wwwroot/css/system/tenants.css; nút dùng data-action (js/system/tenants.js) *@
+@using BTL_WEB_NC.Models.Entities
+@model BTL_WEB_NC.Areas.System.Models.TenantPagedResult
+
+@if (Model.Items.Count == 0)
+{
+    <div class="card">
+        <div class="state">
+            <span class="state-title">Không có quán nào phù hợp</span>
+            <span>Thử đổi từ khóa hoặc bấm "Đặt lại" để xem tất cả.</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card tenant-panel">
+        <table class="tenant-table">
+            <thead>
+                <tr>
+                    <th scope="col">Tên quán &amp; Đường dẫn</th>
+                    <th scope="col">Chủ quán</th>
+                    <th scope="col">Gói dịch vụ</th>
+                    <th scope="col">Quy mô hiện tại</th>
+                    <th scope="col">Ngày hết hạn</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model.Items)
+                {
+                    <tr class="tenant-row">
+                        <td class="col-name">
+                            <div class="tenant-name">@t.Name</div>
+                            <div class="tenant-slug">@t.Slug</div>
+                        </td>
+                        <td class="col-detail" data-label="Chủ quán">
+                            <div class="detail-value">
+                                <div class="owner-name">@(t.OwnerName ?? "—")</div>
+                                <div class="owner-contact">@(t.OwnerEmail ?? t.OwnerPhone ?? "—")</div>
+                            </div>
+                        </td>
+                        <td class="col-detail" data-label="Gói dịch vụ">
+                            <span class="plan-chip">@t.PlanName</span>
+                        </td>
+                        <td class="col-detail" data-label="Quy mô hiện tại">
+                            <div class="detail-value scale">
+                                <div>@t.CurrentBranches chi nhánh</div>
+                                <div>@t.CurrentStaff nhân viên</div>
+                            </div>
+                        </td>
+                        <td class="col-detail" data-label="Ngày hết hạn">
+                            <span class="@(t.IsExpired ? "expiry-past" : null)">@(t.PlanExpiresAt?.ToString("dd/MM/yyyy") ?? "—")</span>
+                        </td>
+                        <td class="col-status">
+                            @switch (t.Status)
+                            {
+                                case TenantStatus.Active:
+                                    <span class="tenant-status is-active">● Hoạt động</span>
+                                    break;
+                                case TenantStatus.PendingActivation:
+                                    <span class="tenant-status is-pending">● Chờ kích hoạt</span>
+                                    break;
+                                case TenantStatus.Locked:
+                                    <span class="tenant-status is-locked">● Bị khóa</span>
+                                    break;
+                                case TenantStatus.Rejected:
+                                    <span class="tenant-status is-rejected">● Từ chối</span>
+                                    break;
+                            }
+                            @if (t.IsExpired)
+                            {
+                                <span class="tenant-status is-expired">Hết hạn</span>
+                            }
+                            @* Lý do khóa/từ chối hiện thẳng (không dùng title vì điện thoại không có hover) *@
+                            @if (!string.IsNullOrEmpty(t.LockReason))
+                            {
+                                <span class="lock-reason">@t.LockReason</span>
+                            }
+                        </td>
+                        <td class="col-actions">
+                            <div class="row-actions">
+                                @if (t.Status == TenantStatus.PendingActivation)
+                                {
+                                    <button type="button" class="btn btn-primary btn-sm" data-action="activate" data-id="@t.Id" data-name="@t.Name">Kích hoạt</button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-action="reject" data-id="@t.Id" data-name="@t.Name">Từ chối</button>
+                                }
+                                else if (t.Status == TenantStatus.Active)
+                                {
+                                    <button type="button" class="btn btn-sm" data-action="plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
+                                    <button type="button" class="btn btn-sm" data-action="expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-action="lock" data-id="@t.Id" data-name="@t.Name">Khóa quán</button>
+                                }
+                                else if (t.Status == TenantStatus.Locked)
+                                {
+                                    <button type="button" class="btn btn-primary btn-sm" data-action="activate" data-id="@t.Id" data-name="@t.Name">Mở khóa</button>
+                                    <button type="button" class="btn btn-sm" data-action="plan" data-id="@t.Id" data-name="@t.Name" data-plan="@t.PlanId">Đổi gói</button>
+                                    <button type="button" class="btn btn-sm" data-action="expiry" data-id="@t.Id" data-name="@t.Name" data-expiry-text="@t.PlanExpiresAt?.ToString("dd/MM/yyyy")">Gia hạn</button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="tenant-pagination">
+                <div class="pagination-info">
+                    Hiển thị @Model.Items.Count trên tổng số @Model.TotalCount quán
+                </div>
+                <div class="pagination-pages">
+                    @for (var p = 1; p <= Model.TotalPages; p++)
+                    {
+                        <button type="button" class="page-btn @(p == Model.Page ? "is-current" : "")" data-action="page" data-page="@p"
+                                aria-label="Trang @p" aria-current="@(p == Model.Page ? "page" : null)">@p</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

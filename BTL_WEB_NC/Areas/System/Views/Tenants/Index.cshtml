@@ -1,0 +1,143 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D2: modal từ chối có lý do, lọc và gia hạn gói hết hạn) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D3: bỏ style/script inline, trạng thái tải/lỗi, JS ở js/system/tenants.js) *@
+@{
+    ViewData["Title"] = "Quản lý Tenant";
+    var plans = ViewBag.Plans as IReadOnlyList<BTL_WEB_NC.Models.Entities.ServicePlan> ?? new List<BTL_WEB_NC.Models.Entities.ServicePlan>();
+    var vi = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/system/tenants.css" asp-append-version="true" />
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Quản lý Tenant (Quán &amp; Chuỗi)</h1>
+        <p class="page-subtitle">Danh sách các quán đăng ký sử dụng dịch vụ trên nền tảng.</p>
+    </div>
+</div>
+
+@* Tìm kiếm và bộ lọc (AJAX A03, MH06 Hình 3.16) *@
+<form class="card tenant-filter" id="filter-form" role="search" novalidate>
+    <label class="search-field">
+        <span class="visually-hidden">Tìm quán</span>
+        <input type="search" class="input" name="keyword" placeholder="Tìm theo tên quán, đường dẫn, số điện thoại..." autocomplete="off" />
+    </label>
+    <label>
+        <span class="visually-hidden">Trạng thái</span>
+        <select class="select" name="status">
+            <option value="">Trạng thái: Tất cả</option>
+            <option value="0">Chờ kích hoạt</option>
+            <option value="1">Đang hoạt động</option>
+            <option value="2">Bị khóa</option>
+            <option value="3">Từ chối</option>
+            <option value="expired">Hết hạn gói</option>
+        </select>
+    </label>
+    <label>
+        <span class="visually-hidden">Gói dịch vụ</span>
+        <select class="select" name="planId">
+            <option value="">Gói: Tất cả</option>
+            @foreach (var p in plans)
+            {
+                <option value="@p.Id">@p.Name</option>
+            }
+        </select>
+    </label>
+    <button type="reset" class="btn">Đặt lại</button>
+</form>
+
+@* Danh sách nạp bằng AJAX (A03). Trạng thái lỗi được tenants.js dựng bằng DOM. *@
+<div id="tenants-container" aria-live="polite" aria-busy="true">
+    <div class="card"><div class="state" role="status"><span class="spinner" aria-hidden="true"></span><span>Đang tải danh sách quán...</span></div></div>
+</div>
+
+@* Nhập lý do: dùng chung cho Khóa (Hình 3.17) và Từ chối (P01 bước 5) *@
+<dialog class="modal modal-sm" id="reason-modal" aria-labelledby="reason-title">
+    <form class="modal-form" id="reason-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="reason-title" data-reason-title>Khóa hoạt động quán</h2>
+                <p class="modal-subtitle">Quán: <strong data-tenant-name></strong></p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <p class="warn-box" data-lock-warning>
+                Khi bị khóa, mọi tài khoản của quán bị đăng xuất và trang thực đơn công khai tạm ngừng phục vụ.
+            </p>
+            <div class="field">
+                <label class="field-label" for="reason-text"><span data-reason-label>Lý do khóa quán</span> <span class="required">*</span></label>
+                <textarea class="textarea" id="reason-text" name="lockReason" maxlength="255" required placeholder="Lý do được lưu vào lịch sử quản trị"></textarea>
+                <span class="field-error" data-error-for="lockReason"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-danger-solid" data-submit>Khóa quán</button>
+        </div>
+    </form>
+</dialog>
+
+@* Đổi gói dịch vụ (A05) *@
+<dialog class="modal modal-sm" id="plan-modal" aria-labelledby="plan-title">
+    <form class="modal-form" id="plan-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="plan-title">Đổi gói dịch vụ</h2>
+                <p class="modal-subtitle">Quán: <strong data-tenant-name></strong></p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="plan-select">Gói dịch vụ mới</label>
+                <select class="select" id="plan-select" name="planId">
+                    @foreach (var p in plans)
+                    {
+                        <option value="@p.Id">@p.Name – @p.PricePerMonth.ToString("#,##0", vi) đ, tối đa @p.MaxBranches chi nhánh, @p.MaxStaff nhân viên</option>
+                    }
+                </select>
+                <span class="field-error" data-error-for="planId"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu thay đổi</button>
+        </div>
+    </form>
+</dialog>
+
+@* Gia hạn gói (A29, P02 bước 3) *@
+<dialog class="modal modal-sm" id="expiry-modal" aria-labelledby="expiry-title">
+    <form class="modal-form" id="expiry-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="expiry-title">Gia hạn gói dịch vụ</h2>
+                <p class="modal-subtitle">Quán: <strong data-tenant-name></strong> · Hết hạn hiện tại: <strong data-expiry-current></strong></p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="expiry-date">Ngày hết hạn mới <span class="required">*</span></label>
+                <input class="input" type="date" id="expiry-date" name="planExpiresAt" required />
+                <span class="field-error" data-error-for="planExpiresAt"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Gia hạn</button>
+        </div>
+    </form>
+</dialog>
+
+<partial name="_ConfirmModal" />
+
+@section Scripts {
+    <script src="~/js/system/tenants.js" asp-append-version="true"></script>
+}

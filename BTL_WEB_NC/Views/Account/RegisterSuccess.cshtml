@@ -1,0 +1,25 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D3: dùng _AuthLayout, bỏ style inline) *@
+@model BTL_WEB_NC.Models.RegisterTenantViewModel
+@{
+    ViewData["Title"] = "Đăng ký thành công";
+    Layout = "_AuthLayout";
+}
+
+<div class="auth-result">
+    <span class="auth-result-icon" aria-hidden="true">✓</span>
+    <h1 class="auth-title">Đăng ký mở quán thành công</h1>
+    <p class="muted">
+        Yêu cầu mở quán <strong>@Model.ShopName</strong> (đường dẫn <code>@Model.Slug</code>) đã được ghi nhận.
+    </p>
+
+    <div class="alert alert-warn" role="status">
+        <strong>Trạng thái: Chờ kích hoạt.</strong>
+        Quản trị viên hệ thống sẽ duyệt yêu cầu của bạn. Sau khi được kích hoạt, bạn đăng nhập bằng email <strong>@Model.Email</strong>.
+    </div>
+
+    <div class="auth-actions">
+        <a href="/" class="btn">Về trang chủ</a>
+        <a href="/dang-nhap" class="btn btn-primary">Đến trang đăng nhập</a>
+    </div>
+</div>

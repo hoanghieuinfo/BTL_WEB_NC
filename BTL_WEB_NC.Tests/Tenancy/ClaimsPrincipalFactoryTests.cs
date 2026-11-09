@@ -67,6 +67,31 @@ public class ClaimsPrincipalFactoryTests : IDisposable
 
         Assert.Null(principal.FindFirst(TenantClaimTypes.TenantId));
         Assert.Null(principal.FindFirst(TenantClaimTypes.BranchId));
+        Assert.Null(principal.FindFirst(TenantClaimTypes.MustChangePassword));
+    }
+
+    [Fact]
+    public async Task PhaiDoiMatKhau_CoClaim_DoiXongThiMat()
+    {
+        using var provider = IdentityTestHost.Create(_db);
+        using var scope = provider.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        var factory = scope.ServiceProvider.GetRequiredService<IUserClaimsPrincipalFactory<AppUser>>();
+
+        var user = new AppUser
+        {
+            UserName = "moi@a.test", Email = "moi@a.test", FullName = "Nhân Viên Mới",
+            TenantId = TestDb.TenantA, MustChangePassword = true
+        };
+        Assert.True((await userManager.CreateAsync(user, SeedData.DemoPassword)).Succeeded);
+
+        Assert.NotNull((await factory.CreateAsync(user)).FindFirst(TenantClaimTypes.MustChangePassword));
+
+        // Giống action ChangePassword: tắt cờ rồi dựng lại cookie qua factory (RefreshSignInAsync).
+        user.MustChangePassword = false;
+        await userManager.UpdateAsync(user);
+
+        Assert.Null((await factory.CreateAsync(user)).FindFirst(TenantClaimTypes.MustChangePassword));
     }
 
     public void Dispose() => _db.Dispose();

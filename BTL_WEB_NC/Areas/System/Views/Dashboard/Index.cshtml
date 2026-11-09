@@ -1,0 +1,173 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D2: modal từ chối có lý do, lọc và gia hạn gói hết hạn) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D3: bỏ style/script inline và Html.Raw; dữ liệu biểu đồ qua data-*, JS ở js/system/dashboard.js) *@
+@model BTL_WEB_NC.Areas.System.Models.SystemDashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+    var year = BTL_WEB_NC.Infrastructure.VietnamTime.Now.Year;
+    var activePct = Model.TotalTenants > 0 ? Math.Round((double)Model.ActiveTenants / Model.TotalTenants * 100, 1) : 0;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/system/dashboard.css" asp-append-version="true" />
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Tổng quan hệ thống</h1>
+        <p class="page-subtitle">Theo dõi tăng trưởng, vận hành và kết nối mọi quán cà phê trên nền tảng.</p>
+    </div>
+    <span class="year-chip">Năm @year</span>
+</div>
+
+@* Thẻ số liệu (MH05, Hình 3.15) *@
+<section class="sys-stats" aria-label="Số liệu toàn hệ thống">
+    <div class="card sys-stat">
+        <span class="stat-label">Tổng số quán</span>
+        <strong class="stat-value">@Model.TotalTenants</strong>
+        <span class="stat-note">Toàn bộ hệ thống</span>
+    </div>
+    <div class="card sys-stat">
+        <span class="stat-label">Quán đang hoạt động</span>
+        <strong class="stat-value is-primary">@Model.ActiveTenants</strong>
+        <span class="stat-note">@activePct.ToString(inv)% tổng số quán</span>
+    </div>
+    <div class="card sys-stat">
+        <span class="stat-label">Quán chờ kích hoạt</span>
+        <strong class="stat-value is-warn">@Model.PendingTenants</strong>
+        <span class="stat-note">Cần duyệt kích hoạt</span>
+    </div>
+    <div class="card sys-stat">
+        <span class="stat-label">Quán bị khóa/từ chối</span>
+        <strong class="stat-value is-danger">@Model.LockedTenants</strong>
+        <span class="stat-note">Không dùng được dịch vụ</span>
+    </div>
+    @* P02 bước 3 – quán hết hạn gói (tính theo PlanExpiresAt) *@
+    <a class="card sys-stat is-link" href="/system/tenants?expired=true">
+        <span class="stat-label">Hết hạn gói</span>
+        <strong class="stat-value is-danger">@Model.ExpiredTenants</strong>
+        <span class="stat-note">Xem và gia hạn &rarr;</span>
+    </a>
+</section>
+
+@* Biểu đồ: số liệu đưa qua data-* (Razor mã hóa), dashboard.js đọc lại. Bảng ẩn bên dưới là bản chữ cho trình đọc màn hình. *@
+<section class="sys-charts">
+    <div class="card">
+        <h2 class="section-title" id="monthly-title">Quán đăng ký mới theo tháng (@year)</h2>
+        <div class="chart-box">
+            <canvas id="chart-monthly" aria-labelledby="monthly-title" role="img"
+                    data-labels="@string.Join(",", Model.MonthlyRegistrations.Select(m => "T" + m.Month))"
+                    data-values="@string.Join(",", Model.MonthlyRegistrations.Select(m => m.Count))"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title" id="plans-title">Tỷ lệ sử dụng gói dịch vụ</h2>
+        @if (Model.PlanDistributions.Count == 0)
+        {
+            <div class="state"><span class="state-title">Chưa có quán nào</span><span>Biểu đồ sẽ hiện khi có quán đăng ký.</span></div>
+        }
+        else
+        {
+            <div class="chart-box">
+                <canvas id="chart-plans" aria-labelledby="plans-title" role="img"></canvas>
+            </div>
+            <ul class="plan-legend" id="plan-data">
+                @foreach (var p in Model.PlanDistributions)
+                {
+                    <li data-name="@p.PlanName" data-count="@p.Count" data-pct="@p.Percentage.ToString(inv)">
+                        Gói @p.PlanName: @p.Count quán (@p.Percentage.ToString(inv)%)
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</section>
+
+@* Quán mới đăng ký cần duyệt nhanh *@
+<section class="card">
+    <div class="pending-head">
+        <div>
+            <h2 class="section-title">Quán mới đăng ký cần kích hoạt <span class="badge badge-warn">@Model.PendingTenants</span></h2>
+            <p class="page-subtitle">Kiểm tra thông tin và phê duyệt để quán bắt đầu sử dụng.</p>
+        </div>
+        <a href="/system/tenants?status=0" class="btn btn-sm">Xem tất cả &rarr;</a>
+    </div>
+
+    @if (Model.RecentPendingTenants.Count == 0)
+    {
+        <div class="state">
+            <span class="empty-icon" aria-hidden="true">✓</span>
+            <span class="state-title">Không có quán nào chờ kích hoạt</span>
+            <span>Quán mới đăng ký sẽ hiện ở đây để duyệt nhanh.</span>
+        </div>
+    }
+    else
+    {
+        <table class="card-table">
+            <thead>
+                <tr>
+                    <th scope="col">Tên quán</th>
+                    <th scope="col">Đường dẫn</th>
+                    <th scope="col">Chủ quán</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Gói</th>
+                    <th scope="col">Ngày đăng ký</th>
+                    <th scope="col" class="col-actions">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.RecentPendingTenants)
+                {
+                    <tr class="card-row">
+                        <td class="col-title">@item.Name</td>
+                        <td class="col-detail mono" data-label="Đường dẫn">@item.Slug</td>
+                        <td class="col-detail" data-label="Chủ quán">@(item.OwnerName ?? "—")</td>
+                        <td class="col-detail" data-label="Email">@(item.OwnerEmail ?? "—")</td>
+                        <td class="col-detail" data-label="Gói"><span class="chip-plan">@item.PlanName</span></td>
+                        <td class="col-detail" data-label="Ngày đăng ký">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="col-actions">
+                            <div class="row-actions">
+                                <button type="button" class="btn btn-primary btn-sm" data-action="activate" data-id="@item.Id" data-name="@item.Name">Kích hoạt</button>
+                                <button type="button" class="btn btn-danger btn-sm" data-action="reject" data-id="@item.Id" data-name="@item.Name">Từ chối</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>
+
+@* Từ chối đăng ký: bắt buộc ghi lý do (P01 bước 5) *@
+<dialog class="modal modal-sm" id="reject-modal" aria-labelledby="reject-title">
+    <form class="modal-form" id="reject-form" novalidate>
+        <div class="modal-head">
+            <div>
+                <h2 class="modal-title" id="reject-title">Từ chối đăng ký</h2>
+                <p class="modal-subtitle">Quán: <strong data-tenant-name></strong></p>
+            </div>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <div class="field">
+                <label class="field-label" for="reject-reason">Lý do từ chối <span class="required">*</span></label>
+                <textarea class="textarea" id="reject-reason" name="lockReason" maxlength="255" required></textarea>
+                <span class="field-error" data-error-for="lockReason"></span>
+                <span class="field-error" data-error-for=""></span>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-danger-solid" data-submit>Từ chối</button>
+        </div>
+    </form>
+</dialog>
+
+<partial name="_ConfirmModal" />
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/system/dashboard.js" asp-append-version="true"></script>
+}

@@ -98,9 +98,9 @@
 
   /** Nhãn "x/y nhân viên của gói", nút Thêm và khối mức dùng ở sidebar (R17). */
   function applyUsage(meta) {
-    if (!meta.dataset.usageMax) return;
-    var count = parseInt(meta.dataset.usageCount, 10);
-    var max = parseInt(meta.dataset.usageMax, 10);
+    if (!meta.dataset.metaMax) return;
+    var count = parseInt(meta.dataset.metaCount, 10);
+    var max = parseInt(meta.dataset.metaMax, 10);
     var full = count >= max;
     $all("[data-usage-count]").forEach(function (el) { el.textContent = count; });
     $all("[data-usage-max]").forEach(function (el) { el.textContent = max; });

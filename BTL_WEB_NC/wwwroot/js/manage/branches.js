@@ -79,8 +79,8 @@
   /** Cập nhật nhãn "x/y chi nhánh của gói", nút Thêm và khối mức dùng ở sidebar (R11). */
   function applyUsage(meta) {
     if (!meta) return;
-    var count = parseInt(meta.dataset.usageCount, 10);
-    var max = parseInt(meta.dataset.usageMax, 10);
+    var count = parseInt(meta.dataset.metaCount, 10);
+    var max = parseInt(meta.dataset.metaMax, 10);
     var full = count >= max;
     $all("[data-usage-count]").forEach(function (el) { el.textContent = count; });
     $all("[data-usage-max]").forEach(function (el) { el.textContent = max; });
@@ -189,8 +189,8 @@
     var preview = $("[data-usage-preview]", branchForm);
     preview.hidden = !!row || !meta;
     if (!row && meta) {
-      var next = parseInt(meta.dataset.usageCount, 10) + 1;
-      var max = parseInt(meta.dataset.usageMax, 10);
+      var next = parseInt(meta.dataset.metaCount, 10) + 1;
+      var max = parseInt(meta.dataset.metaMax, 10);
       $("[data-preview-text]", preview).textContent = next + "/" + max;
       var bar = $("[data-preview-bar]", preview);
       bar.max = max;

@@ -1,0 +1,140 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@model BTL_WEB_NC.Models.RegisterTenantViewModel
+@{
+    ViewData["Title"] = "Đăng ký mở quán dùng thử miễn phí – CafeSaaS";
+    ViewData["Description"] = "Khởi tạo hệ thống quản lý cho quán của bạn chỉ trong 2 phút.";
+    // Chỉ landing page và thực đơn công khai được lập chỉ mục (SPEC mục 3.2.5).
+    ViewData["NoIndex"] = true;
+    var plans = ViewBag.Plans as List<BTL_WEB_NC.Models.Entities.ServicePlan> ?? new();
+}
+
+<div class="auth-page">
+    <div class="register-shell">
+        <!-- Cột trái: banner thương hiệu (ẩn trên mobile <1280px) -->
+        <div class="register-banner">
+            <span class="banner-badge">Quán của bạn, Mây đồng hành</span>
+            <h1 class="banner-title">Vận hành nhẹ nhàng. Trọn vẹn đam mê.</h1>
+            <p class="banner-subtitle">Từ ly cà phê đầu tiên đến cả chuỗi cửa hàng, quản lý mọi thứ trong một không gian.</p>
+            
+            <div class="banner-card">
+                <div class="banner-card-head">
+                    <span>Doanh thu hôm nay</span>
+                    <strong>2.450.000 đ</strong>
+                </div>
+                <div class="banner-card-badge">✓ Đơn hàng đã hoàn tất (Bàn 05 • 85.000đ)</div>
+            </div>
+
+            <ul class="banner-list">
+                <li><strong>Bán hàng mượt mà:</strong> Gọi món, thanh toán và theo dõi từng đơn.</li>
+                <li><strong>Nắm rõ hiệu quả:</strong> Doanh thu, tồn kho luôn trong tầm tay.</li>
+                <li><strong>Một quán hay cả chuỗi:</strong> Kết nối các chi nhánh trên cùng hệ thống.</li>
+            </ul>
+        </div>
+
+        <!-- Cột phải: form đăng ký -->
+        <div class="register-form-card">
+            <div class="form-header">
+                <div class="badge-tag">🌱 Bắt đầu miễn phí • Không cần thẻ tín dụng</div>
+                <h2 class="form-title">Đăng ký mở quán dùng thử miễn phí</h2>
+                <p class="form-desc">Khởi tạo hệ thống quản lý cho quán của bạn chỉ trong 2 phút</p>
+            </div>
+
+            <form id="register-form" method="post" action="/dang-ky" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert-box alert-danger"></div>
+
+                <div class="form-group">
+                    <label asp-for="ShopName" class="form-label">Tên quán cà phê <span class="text-danger">*</span></label>
+                    <input asp-for="ShopName" class="input" placeholder="Ví dụ: Cà Phê Mây" maxlength="100" required />
+                    <span asp-validation-for="ShopName" class="field-error" data-error-for="ShopName"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Slug" class="form-label">Đường dẫn riêng của quán <span class="text-danger">*</span></label>
+                    <div class="input-slug-wrap">
+                        <span class="slug-prefix">@Context.Request.Host/</span>
+                        <input asp-for="Slug" class="input input-slug" placeholder="ca-phe-may" maxlength="60" required autocomplete="off" />
+                        <span class="slug-status" id="slug-status-icon"></span>
+                    </div>
+                    <span class="field-hint" id="slug-hint">Đường dẫn khả dụng. Đây sẽ là không gian quản lý riêng của quán.</span>
+                    <span asp-validation-for="Slug" class="field-error" data-error-for="Slug"></span>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label asp-for="FullName" class="form-label">Họ và tên chủ quán <span class="text-danger">*</span></label>
+                        <input asp-for="FullName" class="input" placeholder="Nhập họ và tên chủ quán" maxlength="100" required />
+                        <span asp-validation-for="FullName" class="field-error" data-error-for="FullName"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="PhoneNumber" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                        <input asp-for="PhoneNumber" class="input" placeholder="Nhập số điện thoại (10 chữ số)" maxlength="10" required />
+                        <span asp-validation-for="PhoneNumber" class="field-error" data-error-for="PhoneNumber"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">Email đăng nhập <span class="text-danger">*</span></label>
+                    <input asp-for="Email" type="email" class="input" placeholder="dia-chi-email@gmail.com" required autocomplete="username" />
+                    <span asp-validation-for="Email" class="field-error" data-error-for="Email"></span>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label asp-for="Password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                        <input asp-for="Password" type="password" class="input" placeholder="Tối thiểu 8 ký tự" required autocomplete="new-password" />
+                        <span asp-validation-for="Password" class="field-error" data-error-for="Password"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                        <input asp-for="ConfirmPassword" type="password" class="input" placeholder="Nhập lại mật khẩu" required autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmPassword" class="field-error" data-error-for="ConfirmPassword"></span>
+                    </div>
+                </div>
+
+                <!-- Chọn gói dịch vụ khởi tạo (BM02) -->
+                <div class="form-group">
+                    <label class="form-label">Chọn gói dịch vụ khởi tạo</label>
+                    <div class="plans-radio-group">
+                        @foreach (var plan in plans)
+                        {
+                            <label class="plan-radio-card @(Model.ServicePlanId == plan.Id ? "is-selected" : "")">
+                                <input type="radio" name="ServicePlanId" value="@plan.Id" @(Model.ServicePlanId == plan.Id ? "checked" : "") />
+                                <div class="radio-card-body">
+                                    <div class="radio-card-name">@plan.Name</div>
+                                    <div class="radio-card-price">
+                                        <strong>@plan.PricePerMonth.ToString("N0") đ</strong><small>/tháng</small>
+                                    </div>
+                                    <div class="radio-card-desc">@plan.MaxBranches chi nhánh • tối đa @plan.MaxStaff nhân viên</div>
+                                </div>
+                            </label>
+                        }
+                    </div>
+                    <span asp-validation-for="ServicePlanId" class="field-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input asp-for="AgreeTerms" type="checkbox" required />
+                        <span>Tôi đồng ý với <a href="#" target="_blank">Điều khoản dịch vụ</a> và <a href="#" target="_blank">Chính sách bảo mật</a></span>
+                    </label>
+                    <span asp-validation-for="AgreeTerms" class="field-error"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-submit-register">
+                    Đăng ký mở quán ngay &rarr;
+                </button>
+
+                <div class="form-footer-note">
+                    Đã có tài khoản quán? <a href="/dang-nhap">Đăng nhập</a>
+                    <div class="secure-badge">🔒 Thông tin của bạn luôn được bảo vệ an toàn.</div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/register.js" asp-append-version="true"></script>
+}

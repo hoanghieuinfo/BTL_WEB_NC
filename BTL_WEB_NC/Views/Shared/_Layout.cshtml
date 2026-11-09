@@ -1,50 +1,83 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BTL_WEB_NC</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@(ViewData["Title"] ?? "CafeSaaS – Nền tảng quản lý quán cà phê SaaS đa chi nhánh")</title>
+    @if (ViewData["Description"] != null)
+    {
+        <meta name="description" content="@ViewData["Description"]" />
+    }
+    else
+    {
+        <meta name="description" content="Nền tảng quản lý chuỗi quán cà phê tinh gọn đa chi nhánh theo mô hình SaaS: quản lý bàn, menu QR, trừ kho tự động, báo cáo doanh thu." />
+    }
+    @if (ViewData["NoIndex"] is true)
+    {
+        <meta name="robots" content="noindex, nofollow" />
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/BTL_WEB_NC.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BTL_WEB_NC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+<body class="public-body">
+    <header class="public-header">
+        <div class="public-nav-container">
+            <a href="/" class="brand-link">
+                <span class="brand-icon">☕</span>
+                <span class="brand-text">CafeSaaS</span>
+            </a>
+            <nav class="public-nav">
+                <a href="/#features" class="nav-link">Tính năng</a>
+                <a href="/#pricing" class="nav-link">Bảng giá</a>
+                <a href="/#faq" class="nav-link">Hỏi đáp</a>
+            </nav>
+            <div class="public-nav-actions">
+                <a href="/dang-nhap" class="btn btn-secondary">Đăng nhập</a>
+                <a href="/dang-ky" class="btn btn-primary">Đăng ký dùng thử</a>
             </div>
-        </nav>
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - BTL_WEB_NC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="public-footer">
+        <div class="public-footer-inner">
+            <div class="footer-col">
+                <div class="brand-link">
+                    <span class="brand-icon">☕</span>
+                    <span class="brand-text">CafeSaaS</span>
+                </div>
+                <p class="footer-desc">Nền tảng quản lý chuỗi quán cà phê tinh gọn, thông minh và tiết kiệm chi phí.</p>
+                <p class="footer-copy">&copy; 2026 CafeSaaS. Nhóm WNC.G12 – FIT HOU.</p>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-heading">Sản phẩm</h4>
+                <ul class="footer-links">
+                    <li><a href="/#features">Quản lý chuỗi</a></li>
+                    <li><a href="/#features">Thực đơn điện tử QR</a></li>
+                    <li><a href="/#features">Quản lý kho nguyên liệu</a></li>
+                    <li><a href="/#pricing">Bảng giá dịch vụ</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-heading">Hệ thống</h4>
+                <ul class="footer-links">
+                    <li><a href="/dang-nhap">Đăng nhập</a></li>
+                    <li><a href="/dang-ky">Đăng ký mở quán</a></li>
+                    <li><a href="/sitemap.xml">Sitemap</a></li>
+                    <li><a href="/robots.txt">Robots.txt</a></li>
+                </ul>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="~/js/ajax.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

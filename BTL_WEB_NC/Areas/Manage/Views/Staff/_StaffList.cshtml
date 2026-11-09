@@ -23,7 +23,7 @@
         else if (pages.Count > 0 && pages[^1] is not null) pages.Add(null);
     }
 }
-<div data-list-meta data-page="@Model.Page" data-usage-count="@usage?.StaffCount" data-usage-max="@usage?.MaxStaff">
+<div data-list-meta data-page="@Model.Page" data-meta-count="@usage?.StaffCount" data-meta-max="@usage?.MaxStaff">
 @if (Model.TotalCount == 0)
 {
     <div class="state">

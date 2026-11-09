@@ -1,0 +1,122 @@
+@* [AI] Claude hỗ trợ – Module 1 (Nguyễn Thành Đạt) *@
+@* [AI] Claude hỗ trợ – Phụ lục Z.7 (D3: bỏ style/script inline, form theo .field/data-error-for, JS ở js/system/plans.js) *@
+@model IReadOnlyList<BTL_WEB_NC.Models.Entities.ServicePlan>
+@{
+    ViewData["Title"] = "Quản lý Gói dịch vụ";
+    var vi = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/system/plans.css" asp-append-version="true" />
+}
+
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Quản lý Gói dịch vụ</h1>
+        <p class="page-subtitle">Thiết lập giá, giới hạn sử dụng và trạng thái cung cấp cho từng gói dịch vụ (BM02).</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-action="add">+ Thêm gói dịch vụ</button>
+</div>
+
+@* Lưới thẻ gói dịch vụ (MH07, Hình 3.18) *@
+@if (Model.Count == 0)
+{
+    <div class="card">
+        <div class="state">
+            <span class="state-title">Chưa có gói dịch vụ nào</span>
+            <span>Thêm gói đầu tiên để các quán có thể đăng ký.</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="plan-grid">
+        @foreach (var p in Model)
+        {
+            <article class="card plan-card @(p.IsActive ? null : "is-off")">
+                <div class="plan-card-head">
+                    <h2 class="plan-name">Gói @p.Name</h2>
+                    @if (p.IsActive)
+                    {
+                        <span class="badge badge-success"><span class="dot" aria-hidden="true"></span>Đang cung cấp</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-danger"><span class="dot" aria-hidden="true"></span>Tạm ngưng</span>
+                    }
+                </div>
+                <p class="plan-price"><strong>@p.PricePerMonth.ToString("#,##0", vi) đ</strong> <span>/tháng</span></p>
+                <ul class="plan-limits">
+                    <li>Tối đa <strong>@p.MaxBranches chi nhánh</strong></li>
+                    <li>Tối đa <strong>@p.MaxStaff nhân viên</strong></li>
+                    <li>@(p.TrialDays.HasValue ? $"{p.TrialDays.Value} ngày dùng thử" : "Không giới hạn ngày")</li>
+                </ul>
+                <div class="plan-actions">
+                    <button type="button" class="btn" data-action="edit"
+                            data-id="@p.Id" data-name="@p.Name" data-branches="@p.MaxBranches" data-staff="@p.MaxStaff"
+                            data-price="@p.PricePerMonth.ToString("0", System.Globalization.CultureInfo.InvariantCulture)"
+                            data-trial="@p.TrialDays" data-active="@(p.IsActive ? "true" : "false")">Chỉnh sửa</button>
+                    <button type="button" class="btn @(p.IsActive ? "btn-danger" : null)" data-action="toggle"
+                            data-id="@p.Id" data-name="@p.Name" data-active="@(p.IsActive ? "true" : "false")">
+                        @(p.IsActive ? "Ngừng cung cấp" : "Cung cấp lại")
+                    </button>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@* Thêm/sửa gói dịch vụ (MH07, Hình 3.19) *@
+<dialog class="modal modal-sm" id="plan-modal" aria-labelledby="plan-modal-title">
+    <form class="modal-form" id="plan-form" novalidate>
+        <div class="modal-head">
+            <h2 class="modal-title" id="plan-modal-title">Thêm gói dịch vụ</h2>
+            <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">✕</button>
+        </div>
+        <div class="modal-body form">
+            <input type="hidden" name="id" />
+            <div class="field">
+                <label class="field-label" for="plan-name">Tên gói <span class="required">*</span></label>
+                <input class="input" id="plan-name" name="name" required maxlength="50" placeholder="Ví dụ: Cơ bản" autocomplete="off" />
+                <span class="field-error" data-error-for="name"></span>
+            </div>
+            <div class="field">
+                <label class="field-label" for="plan-price">Giá tham khảo/tháng (đồng) <span class="required">*</span></label>
+                <input class="input" id="plan-price" name="pricePerMonth" type="number" required min="0" step="1000" inputmode="numeric" />
+                <span class="field-error" data-error-for="pricePerMonth"></span>
+            </div>
+            <div class="form-grid-2">
+                <div class="field">
+                    <label class="field-label" for="plan-branches">Số chi nhánh tối đa <span class="required">*</span></label>
+                    <input class="input" id="plan-branches" name="maxBranches" type="number" required min="1" inputmode="numeric" />
+                    <span class="field-error" data-error-for="maxBranches"></span>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="plan-staff">Số nhân viên tối đa <span class="required">*</span></label>
+                    <input class="input" id="plan-staff" name="maxStaff" type="number" required min="1" inputmode="numeric" />
+                    <span class="field-error" data-error-for="maxStaff"></span>
+                </div>
+            </div>
+            <div class="field">
+                <label class="field-label" for="plan-trial">Số ngày dùng thử</label>
+                <input class="input" id="plan-trial" name="trialDays" type="number" min="1" max="365" inputmode="numeric" placeholder="Bỏ trống nếu không giới hạn" />
+                <span class="field-error" data-error-for="trialDays"></span>
+            </div>
+            <label class="checkbox-label">
+                <input type="checkbox" name="isActive" checked />
+                <span>Đang cung cấp (hiện ở trang đăng ký)</span>
+            </label>
+            <p class="field-error" data-error-for=""></p>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn" data-close>Hủy</button>
+            <button type="submit" class="btn btn-primary" data-submit>Lưu</button>
+        </div>
+    </form>
+</dialog>
+
+<partial name="_ConfirmModal" />
+
+@section Scripts {
+    <script src="~/js/system/plans.js" asp-append-version="true"></script>
+}
