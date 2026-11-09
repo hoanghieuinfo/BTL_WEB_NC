@@ -97,14 +97,15 @@ body.pos { background: var(--bg); }
 .order-facts dt { font-size: 12px; color: var(--muted); }
 .order-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 
-.order-layout { display: grid; gap: 12px; margin-top: 12px; }
+/* minmax(0, 1fr): cột không khai báo thì rộng theo nội dung tối thiểu của thẻ món → tràn ngang ở 360px (MH15 rộng 435px). */
+.order-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 12px; }
 .panel { padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
 .panel h2 { font-size: 17px; margin-bottom: 8px; }
 .panel .count { font-size: 13px; font-weight: 500; color: var(--text-2); }
 .state-soft { background: transparent; border: 1px dashed var(--border); border-radius: var(--radius-sm); }
 
 .line-list { list-style: none; margin: 0; padding: 0; }
-.line { display: grid; grid-template-columns: 1fr auto auto auto; align-items: start; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.line { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: start; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .line-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .line-name { font-weight: 600; overflow-wrap: anywhere; }
 .line-note { font-size: 13px; color: var(--text-2); }
@@ -139,7 +140,7 @@ body.pos { background: var(--bg); }
 .chip.is-active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
 .chip:focus-visible, .menu-item:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
 
-.menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.menu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
 .menu-cell { display: flex; }
 .menu-item {
   display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; min-height: 128px; padding: 8px;
@@ -168,9 +169,11 @@ body.pos { background: var(--bg); }
 .table-card.is-selected { outline: 3px solid var(--text); outline-offset: 2px; }
 @media (min-width: 768px) { .move-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Điện thoại hẹp: hai nút Sửa/Hủy xuống hàng riêng để không chen tên món (vùng chạm vẫn ≥ 44px nhờ ::after của .btn-sm). */
-@media (max-width: 479px) {
-  .line-actions { grid-column: 1 / -1; }
+/* Mobile-first: dưới 768px hai nút Sửa/Hủy xuống hàng riêng để không chen tên món (vùng chạm vẫn ≥ 44px nhờ ::after của .btn-sm);
+   từ 768px nằm cùng hàng với tên món. */
+.line-actions { grid-column: 1 / -1; }
+@media (min-width: 768px) {
+  .line-actions { grid-column: auto; }
 }
 
 /* Hộp thoại số lượng + ghi chú (A13) */
@@ -179,7 +182,7 @@ body.pos { background: var(--bg); }
 .qty-stepper .btn-icon { flex: none; width: var(--tap); font-size: 20px; }
 
 @media (min-width: 768px) {
-  .menu-grid { grid-template-columns: repeat(3, 1fr); }
+  .menu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (min-width: 768px) {
